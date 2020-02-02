@@ -1,5 +1,6 @@
 # NHessian
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/k4tan/NHessian/blob/master/LICENSE)
 [![#](https://img.shields.io/nuget/v/NHessian)](https://www.nuget.org/packages/NHessian/)
 [![Build Status](https://dev.azure.com/kataan83/NHessian/_apis/build/status/NHessian-CI?branchName=master)](https://dev.azure.com/kataan83/NHessian/_build/latest?definitionId=1)
 ![Test Status](https://img.shields.io/azure-devops/tests/kataan83/NHessian/1)
