@@ -13,6 +13,13 @@
     <IncludeSymbols>true</IncludeSymbols>
     <IncludeSource>true</IncludeSource>
     <Description>Fast and efficient Hessian v1 and v2 client library.</Description>
+    <RepositoryUrl>https://github.com/k4tan/NHessian</RepositoryUrl>
+    <PackageTags>hessian</PackageTags>
+    <PackageProjectUrl>https://github.com/k4tan/NHessian</PackageProjectUrl>
+    <PackageReleaseNotes>Initial release
+- v1 and v2 support
+- rpc client
+- support for async calls (Task)</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
