@@ -93,6 +93,11 @@ NHessian service proxy will throw the reported exception if:
 
 If the above conditions do not apply and for any other fault type, NHessian will throw a `HessianRemoteException` providing relevant information.
 
+## Test-Server
+NHessian includes a set of integration tests targeting a server hosted on Heruko.
+
+The project can be found here: https://github.com/k4tan/NHessian-TestServer
+
 ## Missing
 
 - Server library
