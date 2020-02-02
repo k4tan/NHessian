@@ -8,6 +8,23 @@
 
 Fast and efficient Hessian v1 and v2 client library.
 
+## Table of Contents
+
+- [NHessian](#nhessian)
+  * [Table of Contents](#table-of-contents)
+  * [Usage](#usage)
+  * [Motivation](#motivation)
+  * [Performance](#performance)
+  * [Advanced Usages](#advanced-usages)
+    + [Async support](#async-support)
+    + [Custom type bindings](#custom-type-bindings)
+    + [Error handling](#error-handling)
+  * [Strings](#strings)
+    + [CharBuffer Cache](#charbuffer-cache)
+    + [`unsafe` code](#-unsafe--code)
+  * [Test-Server](#test-server)
+  * [Missing](#missing)
+
 ## Usage
 
 ```csharp
