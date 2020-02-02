@@ -93,6 +93,38 @@ NHessian service proxy will throw the reported exception if:
 
 If the above conditions do not apply and for any other fault type, NHessian will throw a `HessianRemoteException` providing relevant information.
 
+## Strings 
+
+Strings are a major chalange during deserialization. 
+Especially in v1 where the same type names are remoted over and over again.
+
+In order to increase performance and memory usage, NHessian contains two optimizations.
+
+### CharBuffer Cache
+
+Strings under a certain length (currently hard coded as 150 characters) are cached and de-duplified.
+This works as follows:
+- string is read from stream and stored as char-array (no allocations)
+- char array is used directly as key into the cache
+  - if cache hit: return cached String
+  - if cache miss: create a String (allocation) and put it into the cache
+
+This effectivly de-duplifies strings and therefore reduces allocations.
+
+In scenarios where strings repeat often, this has a massive effect on memory allocations.
+
+### `unsafe` code
+
+This library contains 3 unsafe code sections in `HessianStreamReader`.
+1. UTF-8 parser (`ReadStringUnsafe`)
+2. `CharBufferEqualityComparer.Equals`
+3. `CharBufferEqualityComparer.GetHashCode`
+
+Using unsafe code speeds up utf-8 parsing and char comparison significantly. 
+
+It might be worth exploring "safe" alternatives in the future.
+
+
 ## Test-Server
 NHessian includes a set of integration tests targeting a server hosted on Heruko.
 
