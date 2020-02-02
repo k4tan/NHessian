@@ -1,6 +1,7 @@
 # NHessian
 
 [![Build Status](https://dev.azure.com/kataan83/NHessian/_apis/build/status/NHessian-CI?branchName=master)](https://dev.azure.com/kataan83/NHessian/_build/latest?definitionId=1)
+![Test Status](https://img.shields.io/azure-devops/tests/kataan83/NHessian/1)
 [![Azure DevOps coverage](https://img.shields.io/azure-devops/coverage/kataan83/NHessian/1)](https://dev.azure.com/kataan83/NHessian/_build/latest?definitionId=1&view=codecoverage-tab)
 
 Fast and efficient Hessian v1 and v2 client library.
