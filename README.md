@@ -15,6 +15,7 @@ Fast and efficient Hessian v1 and v2 client library.
   * [Usage](#usage)
   * [Motivation](#motivation)
   * [Performance](#performance)
+    + [Benchmarks](#benchmarks)
   * [Advanced Usages](#advanced-usages)
     + [Async support](#async-support)
     + [Custom type bindings](#custom-type-bindings)
@@ -50,7 +51,30 @@ Existing .NET hessian libraries are a combination of "v1 only", "slow" or "memor
 
 ## Performance
 
-TODO: Attach benchmarks
+As stated, the main motivation for creating this library was the inefficiency of existing .NET implementations.
+
+Following is a comparison of three real world payloads deserialized with NHessian and [CZD.HessianCSharp](https://www.nuget.org/packages/CZD.HessianCSharp/).
+
+[CZD.HessianCSharp](https://www.nuget.org/packages/CZD.HessianCSharp/) is the most downloaded hessian implementation 
+ on nuget (and the one that worked best for me so far).  
+
+### Benchmarks
+
+The following benchmarks focus on deserialization for two reasons:
+1. deserialization is a lot harder to implement efficiently
+2. deserializing is presumably a lot more important for a client than serialization
+
+Context:
+- Payloads were taken from production and are Hessian v1 encoded data streams
+- Measured is pure deserialization. Data is loaded into a `MemoryStream` pre-benchmark and deserialized straight from it.
+- [BenchmarkDotNet](https://github.com/dotnet/BenchmarkDotNet) was used for profiling.
+- For the `NHessian v2` test, the data stream was converted into a v2 stream using NHessian.
+
+Time | Memory Allocation
+---------------|-------------------
+![Time](./docs/benchmarks/execution_time.png) |![Memory Allocation](./docs/benchmarks/memory_allocation.png)
+
+
 
 ## Advanced Usages
 
