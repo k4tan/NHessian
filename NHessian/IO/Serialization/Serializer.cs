@@ -53,5 +53,6 @@ namespace NHessian.IO.Serialization
             }
 
             serializer.Serialize(_output, obj, customTypeName);
-        }    }
+        }
+    }
 }

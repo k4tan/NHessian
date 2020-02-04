@@ -180,5 +180,6 @@ namespace NHessian.IO
         {
             WriteByte((byte)(value >> 8));
             WriteByte((byte)value);
-        }    }
+        }
+    }
 }

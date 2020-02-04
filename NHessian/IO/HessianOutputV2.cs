@@ -202,7 +202,8 @@ namespace NHessian.IO
             }
         }
 
-        /// <inheritdoc/>        public override void WriteNull()
+        /// <inheritdoc/>
+        public override void WriteNull()
         {
             // # null value
             // null       ::= 'N'

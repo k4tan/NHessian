@@ -46,7 +46,8 @@ namespace NHessian.IO
                 default:
                     throw new UnsupportedTagException("bool", tag);
             }
-        }
+        }
+
         /// <inheritdoc/>
         public override DateTime ReadDate()
         {
@@ -79,7 +80,9 @@ namespace NHessian.IO
                 return _streamReader.ReadInt();
 
             throw new UnsupportedTagException("int", tag);
-        }        /// <inheritdoc/>
+        }
+
+        /// <inheritdoc/>
         public override long ReadLong()
         {
             var tag = _streamReader.Read();
@@ -290,5 +293,6 @@ namespace NHessian.IO
              */
             var idx = _streamReader.ReadInt();
             return _refs[idx];
-        }    }
+        }
+    }
 }

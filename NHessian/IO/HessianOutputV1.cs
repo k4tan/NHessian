@@ -248,7 +248,8 @@ namespace NHessian.IO
         internal override void WriteListEnd() => _streamWriter.WriteChar('z');
 
         internal override bool WriteListStart(int length, string typeName)
-        {            _streamWriter.WriteChar('V');
+        {
+            _streamWriter.WriteChar('V');
 
             if (!string.IsNullOrWhiteSpace(typeName))
                 WriteType(typeName);
@@ -270,7 +271,8 @@ namespace NHessian.IO
         internal override void WriteMapEnd() => _streamWriter.WriteChar('z');
 
         internal override void WriteMapStart(string typeName)
-        {            _streamWriter.WriteChar('M');
+        {
+            _streamWriter.WriteChar('M');
 
             if (!string.IsNullOrWhiteSpace(typeName))
                 WriteType(typeName);

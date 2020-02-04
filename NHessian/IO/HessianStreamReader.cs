@@ -181,7 +181,8 @@ namespace NHessian.IO
         /// <returns>
         /// Returns the last read byte again or -1 if no bytes have been read yet.
         /// </returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]        public int ReadLast()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int ReadLast()
         {
             // note: when FetchNext is called, we keep the last byte
             //       in the buffer so we can access it here
@@ -200,7 +201,8 @@ namespace NHessian.IO
         /// </returns>
         /// <exception cref="EndOfStreamException">
         /// If the end of the stream is reached.
-        /// </exception>        public long ReadLong()
+        /// </exception>
+        public long ReadLong()
         {
             // int64 ::= b64 b56 b48 b40 b32 b24 b16 b8
             var b8 = (long)Read();
