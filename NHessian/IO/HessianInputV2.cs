@@ -644,13 +644,15 @@ namespace NHessian.IO
         internal override bool ReadReplyStart()
         {
             // version   ::= 'H' x02 x00
-            if (_streamReader.Read() != 'H'
-                || _streamReader.Read() != 0x02
-                || _streamReader.Read() != 0x00)
-                throw new InvalidOperationException("Invalid header");
+            var tag = _streamReader.Read();
+            var major = _streamReader.Read();
+            var minor = _streamReader.Read();
+
+            if (tag != 'H' || major != 0x02 || minor != 0x00)
+                throw new InvalidOperationException($"Invalid hessian v2 header. Expected ['H', 0x02, 0x00] but was ['{(char)tag}', 0x{major:X2}, 0x{minor:X2}]");
 
             // read actual reply
-            var tag = _streamReader.Read();
+            tag = _streamReader.Read();
             switch (tag)
             {
                 // reply       ::= R value
