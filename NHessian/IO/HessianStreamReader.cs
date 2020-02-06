@@ -284,21 +284,31 @@ namespace NHessian.IO
 
         private void FetchNext()
         {
-            /*
-             * - copy latest byte to the begining of the new buffer
-             * - fill rest of buffer (len - 1) with bytes from the stream
-             * - store how many bytes we actually read
-             * - reset cursor to 1 (0 is last read byte for ReadLast())
-             */
             if (_bufferLen > 0)
+            {
+                /*
+                 * - copy latest byte to the begining of the new buffer
+                 * - fill rest of buffer (len - 1) with bytes from the stream
+                 * - store how many bytes we actually read
+                 * - reset cursor to 1 (0 is last read byte for ReadLast())
+                 */
                 _buffer[0] = _buffer[_bufferLen - 1];
+                var bytesRead = _stream.Read(_buffer, 1, _buffer.Length - 1);
 
-            _bufferLen = _stream.Read(_buffer, 1, _buffer.Length - 1) + 1;
+                if (bytesRead == 0)
+                    throw new EndOfStreamException();
 
-            if (_bufferLen == 0)
-                throw new EndOfStreamException();
+                _bufferLen = bytesRead + 1;
+                _bufferCur = 1;
+            }
+            else
+            {
+                var bytesRead = _bufferLen = _stream.Read(_buffer, 0, _buffer.Length);
+                _bufferCur = 0;
 
-            _bufferCur = 1;
+                if (bytesRead == 0)
+                    throw new EndOfStreamException();
+            }
         }
 
         private void FillBuffer(byte[] buffer, int offset = 0)
