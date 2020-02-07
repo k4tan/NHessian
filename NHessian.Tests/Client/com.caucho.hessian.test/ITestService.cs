@@ -12,6 +12,8 @@ namespace com.caucho.hessian.test
 
         Task<object> echo(object value);
 
+        Task<T> echo<T>(object value);
+
         Task fault();
     }
 }

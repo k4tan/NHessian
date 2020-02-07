@@ -73,6 +73,28 @@ namespace NHessian.Tests.Client
         }
 
         [Test]
+        public async Task Echo_Enum()
+        {
+            var value = example.Color.GREEN;
+            Assert.AreEqual(value, await _service.echo<example.Color>(value));
+        }
+
+        [Test]
+        public async Task Echo_ListEnum()
+        {
+            var values = new example.Color[] { example.Color.GREEN, example.Color.RED };
+            CollectionAssert.AreEqual(values, await _service.echo<example.Color[]>(values));
+        }
+
+        [Test]
+        public async Task Echo_EnumObject()
+        {
+            var value = new example.TestObjectWithEnum() { _value = example.Color.GREEN };
+            var result = await _service.echo<example.TestObjectWithEnum>(value);
+            Assert.AreEqual(value._value, result._value);
+        }
+
+        [Test]
         public async Task Fault()
         {
             try

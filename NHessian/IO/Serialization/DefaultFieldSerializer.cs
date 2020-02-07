@@ -17,7 +17,7 @@ namespace NHessian.IO.Serialization
                 fieldInfo);
 
             _getter = Expression
-                .Lambda<Func<object, object>>(access, objExp)
+                .Lambda<Func<object, object>>(Expression.Convert(access, typeof(object)), objExp)
                 .Compile();
         }
 

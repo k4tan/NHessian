@@ -17,11 +17,12 @@ namespace NHessian.IO.Serialization
 
             switch (list)
             {
-                case IList<int> intList:
+                //NOTE enum arrays get "falsly" matched by IList<int> and IEnumerable<int>
+                case IList<int> intList when !IsEnumArray(list.GetType()):
                     for (int i = 0; i < intList.Count; i++) output.WriteInt(intList[i]);
                     break;
 
-                case IEnumerable<int> intEnum:
+                case IEnumerable<int> intEnum when !IsEnumArray(list.GetType()):
                     foreach (var item in intEnum) output.WriteInt(item);
                     break;
 
@@ -68,6 +69,11 @@ namespace NHessian.IO.Serialization
 
             if (hasEnd)
                 output.WriteListEnd();
+        }
+
+        private static bool IsEnumArray(Type type)
+        {
+            return type.IsArray && (type.GetElementType()?.IsEnum ?? false);
         }
     }
 }
