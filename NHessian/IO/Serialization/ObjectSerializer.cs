@@ -6,7 +6,7 @@ namespace NHessian.IO.Serialization
 {
     internal class ObjectSerializer : MapSerializer
     {
-        private readonly IReadOnlyList<FieldInfo> _fields;
+        private readonly FieldInfo[] _fields;
         private readonly FieldSerializer[] _fieldSerializers;
         private readonly Type _type;
         private string[] _fieldNames;
@@ -14,9 +14,9 @@ namespace NHessian.IO.Serialization
         public ObjectSerializer(Type type)
         {
             _fields = CollectFields(type);
-            _fieldNames = new string[_fields.Count];
-            _fieldSerializers = new FieldSerializer[_fields.Count];
-            for (int i = 0; i < _fields.Count; i++)
+            _fieldNames = new string[_fields.Length];
+            _fieldSerializers = new FieldSerializer[_fields.Length];
+            for (int i = 0; i < _fields.Length; i++)
             {
                 _fieldNames[i] = _fields[i].Name;
                 _fieldSerializers[i] = CreateFieldSerializer(_fields[i]);
@@ -33,9 +33,8 @@ namespace NHessian.IO.Serialization
             if (defIdx < 0)
             {
                 output.WriteMapStart(typeName);
-                for (int i = 0; i < _fields.Count; i++)
+                for (int i = 0; i < _fields.Length; i++)
                 {
-                    var fieldInfo = _fields[i];
                     output.WriteString(_fieldNames[i]);
                     _fieldSerializers[i].WriteField(output, map);
                 }
@@ -45,12 +44,12 @@ namespace NHessian.IO.Serialization
             {
                 output.WriteMapStart(defIdx);
 
-                for (int i = 0; i < _fields.Count; i++)
+                for (int i = 0; i < _fields.Length; i++)
                     _fieldSerializers[i].WriteField(output, map);
             }
         }
 
-        private static IReadOnlyList<FieldInfo> CollectFields(Type type)
+        private static FieldInfo[] CollectFields(Type type)
         {
             var fields = new List<FieldInfo>();
             for (; type != null; type = type.BaseType)
@@ -63,7 +62,7 @@ namespace NHessian.IO.Serialization
                         BindingFlags.GetField |
                         BindingFlags.DeclaredOnly));
             }
-            return fields;
+            return fields.ToArray();
         }
 
         private static FieldSerializer CreateFieldSerializer(FieldInfo fieldInfo)

@@ -212,8 +212,8 @@ namespace NHessian.IO
 
         internal override void WriteCallStart(
             string methodName,
-            IReadOnlyList<object> args,
-            IReadOnlyList<Tuple<string, object>> headers)
+            object[] args,
+            Tuple<string, object>[] headers)
         {
             /* NOTE no support foroverloads */
             if (string.IsNullOrWhiteSpace(methodName))

@@ -6,7 +6,7 @@ namespace NHessian.IO.Serialization
 {
     internal class ExceptionSerializer : MapSerializer
     {
-        private readonly IReadOnlyList<FieldInfo> _fields;
+        private readonly FieldInfo[] _fields;
         private readonly Type _type;
 
         public ExceptionSerializer(Type type)
@@ -22,9 +22,8 @@ namespace NHessian.IO.Serialization
             output.WriteMapStart(typeName);
 
             // entries
-            for (int i = 0; i < _fields.Count; i++)
+            foreach (var fieldInfo in _fields)
             {
-                var fieldInfo = _fields[i];
                 output.WriteString(fieldInfo.Name);
                 output.WriteObject(fieldInfo.GetValue(map));
             }

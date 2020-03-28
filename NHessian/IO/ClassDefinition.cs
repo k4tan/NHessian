@@ -9,7 +9,7 @@ namespace NHessian.IO
     /// </summary>
     internal class ClassDefinition
     {
-        public ClassDefinition(string typeName, IReadOnlyList<string> fieldNames)
+        public ClassDefinition(string typeName, string[] fieldNames)
         {
             if (string.IsNullOrWhiteSpace(typeName))
                 throw new ArgumentException(nameof(typeName));
@@ -21,7 +21,7 @@ namespace NHessian.IO
             FieldNames = fieldNames;
         }
 
-        public IReadOnlyList<string> FieldNames { get; }
+        public string[] FieldNames { get; }
         public string TypeName { get; }
     }
 }

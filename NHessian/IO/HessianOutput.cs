@@ -57,13 +57,13 @@ namespace NHessian.IO
         /// </param>
         public void WriteCall(
             string methodName,
-            IReadOnlyList<object> args,
-            IReadOnlyList<Tuple<string, object>> headers = null)
+            object[] args,
+            Tuple<string, object>[] headers = null)
         {
             WriteCallStart(methodName, args, headers);
 
-            for (int i = 0; i < args.Count; i++)
-                WriteObject(args[i]);
+            foreach (var arg in args)
+                WriteObject(arg);
 
             WriteCallEnd();
         }
@@ -125,8 +125,8 @@ namespace NHessian.IO
 
         internal abstract void WriteCallStart(
             string methodName,
-            IReadOnlyList<object> args,
-            IReadOnlyList<Tuple<string, object>> headers);
+            object[] args,
+            Tuple<string, object>[] headers);
 
         internal abstract void WriteListEnd();
 

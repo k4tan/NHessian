@@ -10,7 +10,7 @@ namespace NHessian.IO.Deserialization
     {
         private readonly Func<object> _activator;
 
-        private readonly IReadOnlyList<FieldDeserializer> _definedFields;
+        private readonly FieldDeserializer[] _definedFields;
         private readonly ConcurrentDictionary<string, FieldDeserializer> _fieldDeserializers;
 
         public ObjectDeserializer(Type objectType)
@@ -29,9 +29,9 @@ namespace NHessian.IO.Deserialization
             _activator = parent._activator;
             _fieldDeserializers = parent._fieldDeserializers;
 
-            var fieldList = new FieldDeserializer[definition.FieldNames.Count];
+            var fieldList = new FieldDeserializer[definition.FieldNames.Length];
 
-            for (int i = 0; i < definition.FieldNames.Count; i++)
+            for (int i = 0; i < definition.FieldNames.Length; i++)
                 fieldList[i] = GetFieldDeserializer(definition.FieldNames[i]);
 
             _definedFields = fieldList;
@@ -49,9 +49,8 @@ namespace NHessian.IO.Deserialization
             if (_definedFields != null)
             {
                 // compact
-                for (int i = 0; i < _definedFields.Count; i++)
+                foreach (var fieldDeserializer in _definedFields)
                 {
-                    var fieldDeserializer = _definedFields[i];
                     if (fieldDeserializer != null)
                         fieldDeserializer.PopulateField(input, map);
                     else

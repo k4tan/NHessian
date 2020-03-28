@@ -324,8 +324,8 @@ namespace NHessian.IO
 
         internal override void WriteCallStart(
             string methodName,
-            IReadOnlyList<object> args,
-            IReadOnlyList<Tuple<string, object>> headers)
+            object[] args,
+            Tuple<string, object>[] headers)
         {
             if (string.IsNullOrWhiteSpace(methodName))
                 throw new ArgumentException("Method name cannot be null or empty", nameof(methodName));
@@ -341,7 +341,7 @@ namespace NHessian.IO
             // call
             _streamWriter.WriteChar('C');
             WriteString(methodName);
-            WriteInt(args.Count);
+            WriteInt(args.Length);
         }
 
         internal override void WriteListEnd() => _streamWriter.WriteChar('Z');
