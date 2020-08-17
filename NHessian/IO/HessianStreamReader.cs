@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Xml;
 
 namespace NHessian.IO
 {
@@ -32,11 +32,13 @@ namespace NHessian.IO
         private readonly int _cacheMaxStringLength;
         private readonly bool _leaveOpen;
         private readonly Stream _stream;
-        private readonly Dictionary<CharBuffer, string> _stringCache;
+
+        private readonly NameTable _stringCache;
+        private char[] _charBuf;
+
         private byte[] _buffer;
         private int _bufferCur;
         private int _bufferLen;
-        private CharBuffer _charBuf;
 
         /// <summary>
         /// Initialize a new instance of <see cref="HessianStreamReader"/>.
@@ -67,19 +69,18 @@ namespace NHessian.IO
 
             _buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
 
-            _charBuf.charBuffer = ArrayPool<char>.Shared.Rent(128);
+            _charBuf = ArrayPool<char>.Shared.Rent(128);
             _cacheMaxStringLength = cacheMaxStringLength;
-            _stringCache = new Dictionary<CharBuffer, string>(new CharBufferEqualityComparer());
+            _stringCache = new NameTable();
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
             ArrayPool<byte>.Shared.Return(_buffer);
-            ArrayPool<char>.Shared.Return(_charBuf.charBuffer);
+            ArrayPool<char>.Shared.Return(_charBuf);
             _buffer = null;
-            _charBuf.charBuffer = null;
-            _charBuf.length = 0;
+            _charBuf = null;
 
             if (!_leaveOpen)
                 _stream.Dispose();
@@ -251,35 +252,23 @@ namespace NHessian.IO
         public string ReadString(int length)
         {
             // read string into char buffer
-            if (_charBuf.charBuffer.Length < length)
+            if (_charBuf.Length < length)
             {
                 // grow if to small
-                ArrayPool<char>.Shared.Return(_charBuf.charBuffer);
-                _charBuf.charBuffer = ArrayPool<char>.Shared.Rent(length);
+                ArrayPool<char>.Shared.Return(_charBuf);
+                _charBuf = ArrayPool<char>.Shared.Rent(length);
             }
 
-            ReadStringUnsafe(_charBuf.charBuffer, length);
-            _charBuf.length = length;
+            ReadStringUnsafe(_charBuf, length);
 
             // caching
             if (_stringCache != null && length <= _cacheMaxStringLength)
             {
-                if (!_stringCache.TryGetValue(_charBuf, out var s))
-                {
-                    // add string to cache
-                    s = new string(_charBuf.charBuffer, 0, _charBuf.length);
-                    var keyBuf = new CharBuffer
-                    {
-                        charBuffer = new char[_charBuf.length],
-                        length = _charBuf.length
-                    };
-                    Array.Copy(_charBuf.charBuffer, 0, keyBuf.charBuffer, 0, _charBuf.length);
-                    _stringCache.Add(keyBuf, s);
-                }
-                return s;
+                // atomize string
+                return _stringCache.Add(_charBuf, 0, length);
             }
 
-            return new string(_charBuf.charBuffer, 0, _charBuf.length);
+            return new string(_charBuf, 0, length);
         }
 
         private void FetchNext()
@@ -369,104 +358,5 @@ namespace NHessian.IO
                 }
             }
         }
-
-        #region CharBuffer
-
-        /// <summary>
-        /// Reusable buffer that always starts at 0 and has
-        /// a custom length. <see cref="length"/> describes
-        /// the 'usable' length of <see cref="charBuffer"/>
-        /// independent of its actual size in memory.
-        /// </summary>
-        private struct CharBuffer
-        {
-            public char[] charBuffer;
-            public int length;
-        }
-
-        #endregion CharBuffer
-
-        #region CharBufferEqualityComparer
-
-        private class CharBufferEqualityComparer : IEqualityComparer<CharBuffer>
-        {
-            public bool Equals(CharBuffer x, CharBuffer y)
-            {
-                if (x.length != y.length)
-                    return false;
-
-                int length = x.length;
-
-                if (length == 0)
-                    return true;
-
-                unsafe
-                {
-                    fixed (char* ap = &x.charBuffer[0])
-                    fixed (char* bp = &y.charBuffer[0])
-                    {
-                        char* a = ap;
-                        char* b = bp;
-
-                        // optimize by comparing longs instead of individual bytes
-                        while (length >= 12)
-                        {
-                            if (*(long*)a != *(long*)b) return false;
-                            if (*(long*)(a + 4) != *(long*)(b + 4)) return false;
-                            if (*(long*)(a + 8) != *(long*)(b + 8)) return false;
-                            a += 12;
-                            b += 12;
-                            length -= 12;
-                        }
-
-                        // compare byte by byte once we are < 12 length
-                        while (length > 0)
-                        {
-                            if (*a != *b) break;
-                            a++;
-                            b++;
-                            length--;
-                        }
-
-                        return length <= 0;
-                    }
-                }
-            }
-
-            public int GetHashCode(CharBuffer obj)
-            {
-                int hash1 = (5381 << 16) + 5381;
-                int hash2 = hash1;
-
-                if (obj.length > 0)
-                {
-                    unsafe
-                    {
-                        fixed (char* src = &obj.charBuffer[0])
-                        {
-                            int* pint = (int*)src;
-                            int len = obj.length;
-
-                            while (len > 3)
-                            {
-                                hash1 = (hash1 << 5) + hash1 + (hash1 >> 27) ^ pint[0];
-                                hash2 = (hash2 << 5) + hash2 + (hash2 >> 27) ^ pint[1];
-                                pint += 2;
-                                len -= 4;
-                            }
-
-                            if (len > 1)
-                            {
-                                hash1 = (hash1 << 5) + hash1 + (hash1 >> 27) ^ pint[0];
-                            }
-                        }
-                    }
-                }
-
-                return hash1 + hash2 * 1566083941;
-            }
-        }
-
-        #endregion CharBufferEqualityComparer
     }
 }
