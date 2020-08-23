@@ -2,6 +2,7 @@
 using NHessian.IO.Utils;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace NHessian.IO
 {
@@ -135,11 +136,13 @@ namespace NHessian.IO
                 // An XML document encoded as a 16-bit unicode character string encoded in UTF-8. XML data is encoded in chunks.
                 case 'S':
                 case 'X':
-                    return _streamReader.ReadString(_streamReader.ReadShort());
+                    var len = _streamReader.ReadShort();
+                    return len <= STRING_INTERN_THRESHOLD ? _streamReader.ReadInternedString(len) : _streamReader.ReadString(len);
 
                 case 's':
                 case 'x':
-                    return _streamReader.ReadString(_streamReader.ReadShort()) + ReadObject();
+                    return ReadMultiPartString();
+
                 // Binary data is encoded in chunks. 'B' represents the final chunk and 'b' represents any initial chunk.
                 case 'B':
                     return ReadRawBytes();
@@ -171,16 +174,15 @@ namespace NHessian.IO
             {
                 case 'S':
                 case 'X':
-                    return _streamReader.ReadString(_streamReader.ReadShort());
+                    var len = _streamReader.ReadShort();
+                    return len <= STRING_INTERN_THRESHOLD ? _streamReader.ReadInternedString(len) : _streamReader.ReadString(len);
 
                 case 'N':
                     return null;
 
                 case 's':
                 case 'x':
-                    // possible optimizations
-                    // - use StrginBuilder in loop
-                    return _streamReader.ReadString(_streamReader.ReadShort()) + ReadString();
+                    return ReadMultiPartString();
 
                 default:
                     throw new UnsupportedTagException("string", tag);
@@ -258,7 +260,7 @@ namespace NHessian.IO
         {
             var tag = _streamReader.Read();
             if (tag == 't')
-                return _streamReader.ReadString(_streamReader.ReadShort());
+                return _streamReader.ReadInternedString(_streamReader.ReadShort());
 
             throw new UnsupportedTagException("type", tag);
         }
@@ -293,6 +295,33 @@ namespace NHessian.IO
              */
             var idx = _streamReader.ReadInt();
             return _refs[idx];
+        }
+
+        private string ReadMultiPartString()
+        {
+            var strBuilder = new StringBuilder(_streamReader.ReadString(_streamReader.ReadShort()));
+            var isEnd = false;
+            while (!isEnd)
+            {
+                var tag = _streamReader.Read();
+                switch (tag)
+                {
+                    case 'S':
+                    case 'X':
+                        strBuilder.Append(_streamReader.ReadString(_streamReader.ReadShort()));
+                        isEnd = true;
+                        break;
+
+                    case 's':
+                    case 'x':
+                        strBuilder.Append(_streamReader.ReadString(_streamReader.ReadShort()));
+                        break;
+
+                    default:
+                        throw new UnsupportedTagException("multiPartString", tag);
+                }
+            }
+            return strBuilder.ToString();
         }
     }
 }
