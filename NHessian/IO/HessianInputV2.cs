@@ -2,6 +2,7 @@
 using NHessian.IO.Utils;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace NHessian.IO
 {
@@ -189,7 +190,7 @@ namespace NHessian.IO
                 case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17:
                 case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1c: case 0x1d: case 0x1e: case 0x1f:
 #pragma warning restore format
-                    return _streamReader.ReadString(tag);
+                    return _streamReader.ReadInternedString(tag);
 
                 // ::= [x30-x33] b0 <utf8-data>   # string of length 0-1023
                 case 0x30:
@@ -197,7 +198,7 @@ namespace NHessian.IO
                 case 0x32:
                 case 0x33:
                     var strLen = ((tag - 0x30) << 8) + _streamReader.Read();
-                    return _streamReader.ReadString(strLen);
+                    return strLen <= STRING_INTERN_THRESHOLD ? _streamReader.ReadInternedString(strLen) : _streamReader.ReadString(strLen);
 
                 // ::= 'S' b1 b0 <utf8-data> # string of length 0-65535
                 case 'S':
@@ -205,7 +206,7 @@ namespace NHessian.IO
 
                 // ::= x52 b1 b0 <utf8-data> string # non-final chunk
                 case 0x52:
-                    return _streamReader.ReadString(_streamReader.ReadShort()) + ReadObject();
+                    return ReadMultiPartString();
 
                 /* BINARY */
                 // Compact: short binary
@@ -491,7 +492,7 @@ namespace NHessian.IO
                 case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17:
                 case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1c: case 0x1d: case 0x1e: case 0x1f:
 #pragma warning restore format
-                    return _streamReader.ReadString(tag);
+                    return _streamReader.ReadInternedString(tag);
 
                 // ::= [x30-x33] b0 <utf8-data>           # string of length 0-1023
                 case 0x30:
@@ -499,7 +500,7 @@ namespace NHessian.IO
                 case 0x32:
                 case 0x33:
                     var len = ((tag - 0x30) << 8) + _streamReader.Read();
-                    return _streamReader.ReadString(len);
+                    return len <= STRING_INTERN_THRESHOLD ? _streamReader.ReadInternedString(len) : _streamReader.ReadString(len);
 
                 // ::= 'S' b1 b0 <utf8-data>              # string of length 0-65535
                 case 'S':
@@ -507,7 +508,7 @@ namespace NHessian.IO
 
                 // ::= x52 b1 b0 <utf8-data> string       # non-final chunk
                 case 0x52:
-                    return _streamReader.ReadString(_streamReader.ReadShort()) + ReadString();
+                    return ReadMultiPartString();
 
                 default:
                     throw new UnsupportedTagException("string", tag);
@@ -684,6 +685,55 @@ namespace NHessian.IO
             var buf = new byte[len];
             _streamReader.Read(buf);
             return buf;
+        }
+
+        private string ReadMultiPartString()
+        {
+            var strBuilder = new StringBuilder(_streamReader.ReadString(_streamReader.ReadShort()));
+            var isEnd = false;
+            while (!isEnd)
+            {
+                var tag = _streamReader.Read();
+                switch (tag)
+                {
+                    // Compact: short strings
+                    // ::= [x00-x1f] <utf8-data>       # string of length 0-31
+#pragma warning disable format
+                    case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
+                    case 0x08: case 0x09: case 0x0a: case 0x0b: case 0x0c: case 0x0d: case 0x0e: case 0x0f:
+                    case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17:
+                    case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1c: case 0x1d: case 0x1e: case 0x1f:
+#pragma warning restore format
+                        strBuilder.Append(_streamReader.ReadString(tag));
+                        isEnd = true;
+                        break;
+
+                    // ::= [x30-x33] b0 <utf8-data>           # string of length 0-1023
+                    case 0x30:
+                    case 0x31:
+                    case 0x32:
+                    case 0x33:
+                        var len = ((tag - 0x30) << 8) + _streamReader.Read();
+                        strBuilder.Append(_streamReader.ReadString(len));
+                        isEnd = true;
+                        break;
+
+                    // ::= 'S' b1 b0 <utf8-data>              # string of length 0-65535
+                    case 'S':
+                        strBuilder.Append(_streamReader.ReadString(_streamReader.ReadShort()));
+                        isEnd = true;
+                        break;
+
+                    // ::= x52 b1 b0 <utf8-data> string       # non-final chunk
+                    case 0x52:
+                        strBuilder.Append(_streamReader.ReadString(_streamReader.ReadShort()));
+                        break;
+
+                    default:
+                        throw new UnsupportedTagException("multiPartString", tag);
+                }
+            }
+            return strBuilder.ToString();
         }
     }
 }

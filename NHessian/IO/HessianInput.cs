@@ -8,6 +8,8 @@ namespace NHessian.IO
     /// </summary>
     public abstract class HessianInput
     {
+        protected const int STRING_INTERN_THRESHOLD = 48;
+
         /// <summary>
         /// Instance used to read from the stream.
         /// </summary>
