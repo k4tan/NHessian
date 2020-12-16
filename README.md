@@ -11,20 +11,23 @@ Fast and efficient Hessian v1 and v2 client library.
 ## Table of Contents
 
 - [NHessian](#nhessian)
-  * [Table of Contents](#table-of-contents)
-  * [Usage](#usage)
-  * [Motivation](#motivation)
-  * [Performance](#performance)
-    + [Benchmarks](#benchmarks)
-  * [Advanced Usages](#advanced-usages)
-    + [Async support](#async-support)
-    + [Custom type bindings](#custom-type-bindings)
-    + [Error handling](#error-handling)
-  * [Strings](#strings)
-    + [CharBuffer Cache](#charbuffer-cache)
-    + [`unsafe` code](#-unsafe--code)
-  * [Test-Server](#test-server)
-  * [Missing](#missing)
+  - [Table of Contents](#table-of-contents)
+  - [Usage](#usage)
+  - [Motivation](#motivation)
+  - [Performance](#performance)
+    - [Benchmarks](#benchmarks)
+  - [Advanced Usages](#advanced-usages)
+    - [Async support](#async-support)
+    - [Custom type bindings](#custom-type-bindings)
+    - [Field de-/serialization rules](#field-de-serialization-rules)
+      - [Defaults](#defaults)
+      - [Customization](#customization)
+    - [Error handling](#error-handling)
+  - [Strings](#strings)
+    - [String Interning](#string-interning)
+    - [`unsafe` code](#unsafe-code)
+  - [Test-Server](#test-server)
+  - [Missing](#missing)
 
 ## Usage
 
@@ -121,6 +124,38 @@ var service = new System.Net.Http.HttpClient()
         TypeBindings.Java);
 
 Console.WriteLine(await service.hello())   // "Hello, World"
+```
+
+### Field de-/serialization rules
+
+#### Defaults
+By default, NHessian will de-/serialize public, protected and private instance fields.
+
+The following exceptions apply:
+- `NonSerialized` marked fields are ignored
+- `readonly` fields are serialized but are ignored during deserialization
+
+> NOTE class fields like `static` and `const` are ignored
+
+#### Customization
+Field de-/serialization behavior of NHessian can be customized by 
+- create a custom implementation of `ITypeInformationProvider` (deriving from `DefaultTypeInformationProvider` is recommended)
+- Override `GetSerializableFields`/`GetDeserializableFields`
+- set an instance of your custom implementation to `TypeInformationProvider.Default`
+
+Example implementation where fields starting with `__` should be ignored during serialization:
+```csharp
+public class MyTypeInformationProvider : DefaultTypeInformationProvider
+{
+    protected override FieldInfo[] GetSerializableFieldsOverride(Type type)
+    {
+        return base.GetSerializableFieldsOverride(type)
+            .Where(f => !f.Name.StartsWith("__"))
+            .ToArray();
+    }
+}
+
+TypeInformationProvider.Default = new MyTypeInformationProvider();
 ```
 
 ### Error handling

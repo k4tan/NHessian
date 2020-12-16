@@ -4,7 +4,7 @@ namespace NHessian.IO.Utils
 {
     public static class TypeInformationProvider
     {
-        private static ITypeInformationProvider _current = new DefaultTypeInformationProvider();
+        private static ITypeInformationProvider _default = new DefaultTypeInformationProvider();
 
         /// <summary>
         /// Gets the <see cref="ITypeInformationProvider"/> instance that 
@@ -19,8 +19,8 @@ namespace NHessian.IO.Utils
         /// </exception>
         public static ITypeInformationProvider Default 
         {
-            get => _current;
-            set => _current = value ?? throw new ArgumentNullException(nameof(value));
+            get => _default;
+            set => _default = value ?? throw new ArgumentNullException(nameof(value));
         }
     }
 }
