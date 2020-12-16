@@ -312,8 +312,9 @@ namespace NHessian.Tests.IO
         }
 
         [Test]
-        public void Map_Object()
+        public void Map_Object_1()
         {
+            // car example is taken from hessian spec wesite
             var value = new com.caucho.test.Car
             {
                 model = "Beetle",
@@ -337,6 +338,38 @@ namespace NHessian.Tests.IO
                 // mileage field
                 .WriteChar('S').WriteBytes(0, 0x07).WriteUtf8("mileage")
                 .WriteChar('I').WriteBytes(0, 0x01, 0, 0)
+                // map end
+                .WriteChar('z')
+                .ToArray();
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void Map_Object_2()
+        {
+            // test several different field types
+            var value = new Stubs.TestClass("string");
+
+            var actual = Serialize(value);
+
+            var expected = new HessianDataBuilder()
+                // map
+                .WriteChar('M')
+                // type
+                .WriteChar('t').WriteBytes(0, 0x21).WriteUtf8("NHessian.Tests.IO.Stubs.TestClass")
+                // publicStr
+                .WriteChar('S').WriteBytes(0, 0x09).WriteUtf8("publicStr")
+                .WriteChar('S').WriteBytes(0, 0x06).WriteUtf8("string")
+                // protectedStr
+                .WriteChar('S').WriteBytes(0, 0x0C).WriteUtf8("protectedStr")
+                .WriteChar('S').WriteBytes(0, 0x06).WriteUtf8("string")
+                // privateStr
+                .WriteChar('S').WriteBytes(0, 0x0A).WriteUtf8("privateStr")
+                .WriteChar('S').WriteBytes(0, 0x06).WriteUtf8("string")
+                // readonlyStr
+                .WriteChar('S').WriteBytes(0, 0x0B).WriteUtf8("readonlyStr")
+                .WriteChar('S').WriteBytes(0, 0x06).WriteUtf8("string")
                 // map end
                 .WriteChar('z')
                 .ToArray();

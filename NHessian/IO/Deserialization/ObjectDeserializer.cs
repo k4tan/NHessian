@@ -1,6 +1,6 @@
-﻿using System;
+﻿using NHessian.IO.Utils;
+using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -123,20 +123,11 @@ namespace NHessian.IO.Deserialization
 
         private FieldInfo GetField(string fieldName)
         {
-            var type = MapType;
-            for (; type != null; type = type.BaseType)
-            {
-                var fields = type.GetFields(
-                    BindingFlags.Public |
-                    BindingFlags.Instance |
-                    BindingFlags.NonPublic |
-                    BindingFlags.GetField |
-                    BindingFlags.DeclaredOnly);
+            var fields = TypeInformationProvider.Default.GetDeserializableFields(MapType);
 
-                for (int i = 0; i < fields.Length; i++)
-                    if (fields[i].Name == fieldName)
-                        return fields[i];
-            }
+            for (int i = 0; i < fields.Length; i++)
+                if (fields[i].Name == fieldName)
+                    return fields[i];
 
             return null;
         }

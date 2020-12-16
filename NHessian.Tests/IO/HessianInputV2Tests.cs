@@ -509,8 +509,9 @@ namespace NHessian.Tests.IO
         }
 
         [Test]
-        public void Map_Object()
+        public void Map_Object_1()
         {
+            // car example is taken from hessian spec wesite
             var reader = new HessianDataBuilder()
                 .WriteChar('M') // map
 
@@ -539,8 +540,57 @@ namespace NHessian.Tests.IO
         }
 
         [Test]
-        public void Map_CompactObject()
+        public void Map_Object_2()
         {
+            // test several different field types
+            var reader = new HessianDataBuilder()
+                // map
+                .WriteChar('M')
+                .WriteBytes(0x30, 0x21).WriteUtf8("NHessian.Tests.IO.Stubs.TestClass")
+                // publicStr
+                .WriteBytes(0x09).WriteUtf8("publicStr")
+                .WriteBytes(0x06).WriteUtf8("string")
+                // protectedStr
+                .WriteBytes(0x0C).WriteUtf8("protectedStr")
+                .WriteBytes(0x06).WriteUtf8("string")
+                // privateStr
+                .WriteBytes(0x0A).WriteUtf8("privateStr")
+                .WriteBytes(0x06).WriteUtf8("string")
+                /** non writable fields that should be ignored */
+                // CONST_STR
+                .WriteBytes(0x09).WriteUtf8("CONST_STR")
+                .WriteBytes(0x06).WriteUtf8("string")
+                // StaticStr
+                .WriteBytes(0x09).WriteUtf8("StaticStr")
+                .WriteBytes(0x06).WriteUtf8("string")
+                // readonlyStr
+                .WriteBytes(0x0B).WriteUtf8("readonlyStr")
+                .WriteBytes(0x06).WriteUtf8("string")
+                // nonSerializedStr
+                .WriteBytes(0x10).WriteUtf8("nonSerializedStr")
+                .WriteBytes(0x06).WriteUtf8("string")
+                // map end
+                .WriteChar('Z')
+                .ToReader();
+
+            var actual = (Stubs.TestClass)new HessianInputV2(reader).ReadObject();
+
+            Assert.AreEqual("string", actual.publicStr);
+            Assert.AreEqual("string", actual.getProtectedStr());
+            Assert.AreEqual("string", actual.getPrivateStr());
+
+            // class fields are ignored
+            Assert.AreEqual("const", Stubs.TestClass.CONST_STR);
+            Assert.AreEqual("static", Stubs.TestClass.StaticStr);
+            // read-only fields are ignored
+            Assert.IsNull(actual.readonlyStr);
+            Assert.IsNull(actual.nonSerializedStr);
+        }
+
+        [Test]
+        public void Map_CompactObject_1()
+        {
+            // car example is taken from hessian spec wesite
             var reader = new HessianDataBuilder()
                 .WriteChar('C') // definition
                 .WriteBytes(0x13).WriteUtf8("com.caucho.test.Car")
@@ -564,6 +614,48 @@ namespace NHessian.Tests.IO
             };
 
             Assert.AreEqual(expected, new HessianInputV2(reader).ReadObject());
+        }
+
+        [Test]
+        public void Map_CompactObject_2()
+        {
+            // test several different field types
+            var reader = new HessianDataBuilder()
+                .WriteChar('C') // definition
+                .WriteBytes(0x30, 0x21).WriteUtf8("NHessian.Tests.IO.Stubs.TestClass")
+                .WriteBytes(0x97) // 7 fields
+                .WriteBytes(0x09).WriteUtf8("publicStr")
+                .WriteBytes(0x0C).WriteUtf8("protectedStr")
+                .WriteBytes(0x0A).WriteUtf8("privateStr")
+                /** non writable fields that should be ignored */
+                .WriteBytes(0x09).WriteUtf8("CONST_STR")
+                .WriteBytes(0x09).WriteUtf8("StaticStr")
+                .WriteBytes(0x0B).WriteUtf8("readonlyStr")
+                .WriteBytes(0x10).WriteUtf8("nonSerializedStr")
+
+                .WriteBytes(0x60) // instance
+                .WriteBytes(0x06).WriteUtf8("string")
+                .WriteBytes(0x06).WriteUtf8("string")
+                .WriteBytes(0x06).WriteUtf8("string")
+                .WriteBytes(0x06).WriteUtf8("string")
+                .WriteBytes(0x06).WriteUtf8("string")
+                .WriteBytes(0x06).WriteUtf8("string")
+                .WriteBytes(0x06).WriteUtf8("string")
+
+                .ToReader();
+
+            var actual = (Stubs.TestClass)new HessianInputV2(reader).ReadObject();
+
+            Assert.AreEqual("string", actual.publicStr);
+            Assert.AreEqual("string", actual.getProtectedStr());
+            Assert.AreEqual("string", actual.getPrivateStr());
+
+            // class fields are ignored
+            Assert.AreEqual("const", Stubs.TestClass.CONST_STR);
+            Assert.AreEqual("static", Stubs.TestClass.StaticStr);
+            // read-only fields are ignored
+            Assert.IsNull(actual.readonlyStr);
+            Assert.IsNull(actual.nonSerializedStr);
         }
 
         [Test]
