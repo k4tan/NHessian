@@ -73,6 +73,22 @@ namespace NHessian.Tests.Client
         }
 
         [Test]
+        public async Task Echo_Object()
+        {
+            var value = new IO.Stubs.TestClass("string");
+
+            var actual = await _service.echo<IO.Stubs.TestClass>(value);
+
+            // survive roun-drip
+            Assert.AreEqual("string", actual.publicStr);
+            Assert.AreEqual("string", actual.getProtectedStr());
+            Assert.AreEqual("string", actual.getPrivateStr());
+            // do not survive roun-drip
+            Assert.IsNull(actual.readonlyStr);
+            Assert.IsNull(actual.nonSerializedStr);
+        }
+
+        [Test]
         public async Task Echo_Enum()
         {
             var value = example.Color.GREEN;

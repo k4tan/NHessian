@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using NHessian.IO.Utils;
+using System;
 using System.Reflection;
 
 namespace NHessian.IO.Serialization
@@ -13,7 +13,7 @@ namespace NHessian.IO.Serialization
 
         public ObjectSerializer(Type type)
         {
-            _fields = CollectFields(type);
+            _fields = TypeInformationProvider.Default.GetSerializableFields(type);
             _fieldNames = new string[_fields.Length];
             _fieldSerializers = new FieldSerializer[_fields.Length];
             for (int i = 0; i < _fields.Length; i++)
@@ -47,22 +47,6 @@ namespace NHessian.IO.Serialization
                 for (int i = 0; i < _fields.Length; i++)
                     _fieldSerializers[i].WriteField(output, map);
             }
-        }
-
-        private static FieldInfo[] CollectFields(Type type)
-        {
-            var fields = new List<FieldInfo>();
-            for (; type != null; type = type.BaseType)
-            {
-                fields.AddRange(
-                    type.GetFields(
-                        BindingFlags.Public |
-                        BindingFlags.Instance |
-                        BindingFlags.NonPublic |
-                        BindingFlags.GetField |
-                        BindingFlags.DeclaredOnly));
-            }
-            return fields.ToArray();
         }
 
         private static FieldSerializer CreateFieldSerializer(FieldInfo fieldInfo)

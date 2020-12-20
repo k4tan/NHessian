@@ -194,7 +194,7 @@ namespace NHessian.IO.Deserialization
             type = _typeBindings?.TypeStringToType(typeString);
 
             if (type == null)
-                TypeResolver.TryResolve(typeString, out type);
+                TypeInformationProvider.Default.TryGetTypeByName(typeString, out type);
 
             _localTypeCache.Add(typeString, type);
             return type;

@@ -486,8 +486,9 @@ namespace NHessian.Tests.IO
         }
 
         [Test]
-        public void Map_CompactObject()
+        public void Map_CompactObject_1()
         {
+            // car example is taken from hessian spec wesite
             var value = new com.caucho.test.Car
             {
                 model = "Beetle",
@@ -514,6 +515,35 @@ namespace NHessian.Tests.IO
 
             CollectionAssert.AreEqual(expected, actual);
         }
+
+        [Test]
+        public void Map_CompactObject_2()
+        {
+            // test several different field types
+            var value = new Stubs.TestClass("string");
+
+            var actual = Serialize(value);
+
+            var expected = new HessianDataBuilder()
+                .WriteChar('C') // definition
+                .WriteBytes(0x30, 0x21).WriteUtf8("NHessian.Tests.IO.Stubs.TestClass")
+                .WriteBytes(0x94) // 4 fields
+                .WriteBytes(0x09).WriteUtf8("publicStr")
+                .WriteBytes(0x0c).WriteUtf8("protectedStr")
+                .WriteBytes(0x0a).WriteUtf8("privateStr")
+                .WriteBytes(0x0b).WriteUtf8("readonlyStr")
+
+                .WriteBytes(0x60) // instance
+                .WriteBytes(0x06).WriteUtf8("string")
+                .WriteBytes(0x06).WriteUtf8("string")
+                .WriteBytes(0x06).WriteUtf8("string")
+                .WriteBytes(0x06).WriteUtf8("string")
+
+                .ToArray();
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
 
         [Test]
         public void Map_SparseArray()
