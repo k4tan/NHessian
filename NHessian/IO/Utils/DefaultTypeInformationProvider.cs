@@ -25,8 +25,7 @@ namespace NHessian.IO.Utils
         private readonly ConcurrentDictionary<Type, FieldInfo[]> _deserializableFieldsCache
             = new ConcurrentDictionary<Type, FieldInfo[]>();
 
-
-
+        /// <inheritdoc />
         public bool TryGetTypeByName(string fullTypeName, out Type type)
         {
             if (fullTypeName is null)
@@ -44,6 +43,7 @@ namespace NHessian.IO.Utils
             return false;
         }
 
+        /// <inheritdoc />
         public FieldInfo[] GetSerializableFields(Type type)
         {
             if (type is null)
@@ -57,6 +57,7 @@ namespace NHessian.IO.Utils
             return _serializableFieldsCache[type] = fields;
         }
 
+        /// <inheritdoc />
         public FieldInfo[] GetDeserializableFields(Type type)
         {
             if (type is null)
@@ -70,8 +71,7 @@ namespace NHessian.IO.Utils
             return _deserializableFieldsCache[type] = fields;
         }
 
-
-
+        /// <inheritdoc />
         protected virtual Type GetTypeByNameOverride(string fullTypeName)
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -83,6 +83,7 @@ namespace NHessian.IO.Utils
             return null;
         }
 
+        /// <inheritdoc />
         protected virtual FieldInfo[] GetSerializableFieldsOverride(Type type)
         {
             var fieldsList = new List<FieldInfo>();
@@ -100,6 +101,7 @@ namespace NHessian.IO.Utils
             return fieldsList.ToArray();
         }
 
+        /// <inheritdoc />
         protected virtual FieldInfo[] GetDeserializableFieldsOverride(Type type)
         {
             var fieldsList = new List<FieldInfo>();

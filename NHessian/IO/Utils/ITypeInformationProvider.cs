@@ -3,6 +3,11 @@ using System.Reflection;
 
 namespace NHessian.IO.Utils
 {
+    /// <summary>
+    /// Represents a class that NHessian uses to resolve type information
+    /// for de-/serialization. The default implementation of this interface
+    /// is <see cref="DefaultTypeInformationProvider" />.
+    /// </summary>
     public interface ITypeInformationProvider
     {
         /// <summary>
@@ -29,7 +34,7 @@ namespace NHessian.IO.Utils
         /// Gets all serializable fields for a given type.
         /// </summary>
         /// <remarks>
-        /// All fields returned by this method will be serialized 
+        /// All fields returned by this method will be serialized
         /// into hessian binary data.
         /// </remarks>
         /// <param name="type">

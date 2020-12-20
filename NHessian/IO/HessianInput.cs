@@ -8,6 +8,10 @@ namespace NHessian.IO
     /// </summary>
     public abstract class HessianInput
     {
+        /// <summary>
+        /// String length used to determine whether a deserialized string
+        /// should be interned or not.
+        /// </summary>
         protected const int STRING_INTERN_THRESHOLD = 48;
 
         /// <summary>

@@ -2,12 +2,16 @@
 
 namespace NHessian.IO.Utils
 {
+    /// <summary>
+    /// Gives access to the default <see cref="ITypeInformationProvider"/>
+    /// used by NHessian.
+    /// </summary>
     public static class TypeInformationProvider
     {
         private static ITypeInformationProvider _default = new DefaultTypeInformationProvider();
 
         /// <summary>
-        /// Gets the <see cref="ITypeInformationProvider"/> instance that 
+        /// Gets the <see cref="ITypeInformationProvider"/> instance that
         /// is used during de-/serialization for type information gathering.
         /// </summary>
         /// <remarks>
@@ -17,7 +21,7 @@ namespace NHessian.IO.Utils
         /// <exception cref="ArgumentNullException">
         /// If value is null.
         /// </exception>
-        public static ITypeInformationProvider Default 
+        public static ITypeInformationProvider Default
         {
             get => _default;
             set => _default = value ?? throw new ArgumentNullException(nameof(value));
