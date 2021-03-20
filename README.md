@@ -196,10 +196,10 @@ Using unsafe code speeds up utf-8 parsing and char comparison significantly.
 It might be worth exploring "safe" alternatives in the future.
 
 ## Dates
-.Net `DateTime` instances have one of the following kinds `Local`, `Utc` and `Unspecified`.
+.Net `DateTime` instances have one of the following kinds `Local`, `Utc` or `Unspecified`.
 The hessian protocol always specifies dates/times as UTC.
 
-During serialization, the following rules are apply:
+During serialization, the following rules apply:
 - If `DateTimeKind` is `Utc`, the instance is serialized as is.
 - If `DateTimeKind` is `Local`, the instance is converted to UTC and serialized.
 - If `DateTimeKind` is `Unspecified`, the instance is assumed to be `Local`. Being local, it is converted to UTC and serialized.
