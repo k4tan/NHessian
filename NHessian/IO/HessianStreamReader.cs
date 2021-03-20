@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Buffers;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -353,6 +353,11 @@ namespace NHessian.IO
 
                 while (pTa < pTaLast)
                 {
+                    /**
+                     * NOTE Hessian seem to only support 16 bit Unicode characters:
+                     *      Source: http://hessian.caucho.com/doc/hessian-serialization.html##string
+                     *      However, this implementation supports up to 32bit (not required but shouldn't hurt)
+                     */
                     var b1 = Read();
                     if (b1 < 0x80)
                         *pTa++ = (char)b1;
