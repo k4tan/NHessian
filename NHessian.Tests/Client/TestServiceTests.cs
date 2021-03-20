@@ -62,13 +62,66 @@ namespace NHessian.Tests.Client
                 0x7ff,
                 -0x80000001,
                 3.14159,
-                new DateTime(1969, 7, 16, 13, 32, 0),
                 "any string"
             };
 
             for (int i = 0; i < values.Length; i++)
             {
                 Assert.AreEqual(values[i], await _service.echo(values[i]));
+            }
+        }
+
+        [Test]
+        public async Task Echo_Dates()
+        {
+            /**Tests that dates and times survive a roundtrip.
+             * The following rules are important:
+             * - Hessian encodes/transmitts DateTime in UTC format
+             * - NHession library deserializes as UTC but returns in DateTimKind.Local format
+             * - DateTime serialized with NHessian that have DateTimeKind.Unspecified are treated as Local
+             * - Hessian V2 optimizes dates that do not have seconds/ms with a special short format (Int32 instead of Int64)
+             * - The short date format overflows at some point (~year 6000). The library falls back to long format in that case.
+             */
+            var values = new DateTime[]
+            {
+                // DateTimeKind tests
+                new DateTime(1969, 7, 16, 13, 32, 0, DateTimeKind.Local),
+                new DateTime(1969, 7, 16, 13, 32, 55, DateTimeKind.Local),
+
+                // unspecified should be treated as local
+                // NOTE this test is only conclusive if local time is not same as UTC
+                new DateTime(1969, 7, 16, 13, 32, 0, DateTimeKind.Unspecified),
+                new DateTime(1969, 7, 16, 13, 32, 55, DateTimeKind.Unspecified),
+
+                // Short date overflow test for hessian v2 (DateTimeKind is Utc).
+                // The short format overflows at some point an fallbacks to the long format.
+                // This tests that behavior.
+                DateTime.UnixEpoch.AddMinutes(((long)int.MaxValue) + 1),
+
+                /* extrems (MinValue and MaxValues are DateTimeKind.Unspecified) */
+                // MinValue
+                DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc),
+                // forces long date format in hessian 2
+                DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc).AddSeconds(1),
+                // Max date without seconds/ms (hessian 2 short date format)
+                DateTime.SpecifyKind(DateTime.Parse(DateTime.MaxValue.ToString("yyyy-MM-ddTH:mm")), DateTimeKind.Utc),
+                // Max DateTime (ms is the maximum precision of hessian. ns are lost on roundtrip)
+                DateTime.SpecifyKind(DateTime.Parse(DateTime.MaxValue.ToString("yyyy-MM-ddTH:mm:ss.fff")), DateTimeKind.Utc),
+            };
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                var result = (DateTime)await _service.echo(values[i]);
+
+                var expected = values[i];
+                if (expected.Kind == DateTimeKind.Unspecified)
+                {
+                    // unspecified should be treated as local
+                    expected = DateTime.SpecifyKind(expected, DateTimeKind.Local);
+                }
+
+                // NHessian returns values as DateTimeKind.Local
+                Assert.AreEqual(expected.ToLocalTime(), result);
             }
         }
 

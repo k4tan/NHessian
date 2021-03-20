@@ -71,6 +71,9 @@ namespace NHessian.IO
         /// <summary>
         /// Writes a <see cref="DateTime"/> value to the stream..
         /// </summary>
+        /// <remarks>
+        /// <see cref="DateTimeKind.Unspecified"/> is assumed to be <see cref="DateTimeKind.Local"/>.
+        /// </remarks>
         /// <param name="value">
         /// The value to write.
         /// </param>

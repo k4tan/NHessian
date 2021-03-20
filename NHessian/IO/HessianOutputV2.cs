@@ -60,21 +60,31 @@ namespace NHessian.IO
         /// <inheritdoc/>
         public override void WriteDate(DateTime value)
         {
+            // NOTE DateTimeOffset ctor treats DateTimeKind.Unspecified as DateTimeKind.Local
+
             // # time in UTC encoded as 64-bit long milliseconds since epoch
             // date   ::= x4a b7 b6 b5 b4 b3 b2 b1 b0
             //        ::= x4b b3 b2 b1 b0              # minutes since epoch
-
             var ms = new DateTimeOffset(value).ToUnixTimeMilliseconds();
 
-            if (ms % 60000 == 0)
+            if (ms % 60000L == 0)
             {
-                // short date
-                // minute granularity (1000ms * 60s)
-                // ::= x4b b3 b2 b1 b0
-                _streamWriter.WriteByte(0x4b);
-                _streamWriter.WriteInt((int)(ms / 60000));
-                return;
+                long minutes = ms / 60000L;
+
+                // Check that int is large enough
+                // this overflows for dates > 02:08:00 Jan 23, 6053 UTC
+                // underflow cannot occur
+                if (minutes <= int.MaxValue)
+                {
+                    // short date
+                    // minute granularity (1000ms * 60s)
+                    // ::= x4b b3 b2 b1 b0
+                    _streamWriter.WriteByte(0x4b);
+                    _streamWriter.WriteInt((int)(minutes));
+                    return;
+                }
             }
+
             // long date
             // ::= x4a b7 b6 b5 b4 b3 b2 b1 b0
             _streamWriter.WriteByte(0x4a);
