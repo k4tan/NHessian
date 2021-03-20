@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1
+- Fix DateTime serialization issues in Hessian V2. This issues effect the [Short DateTime](http://hessian.caucho.com/doc/hessian-serialization.html#anchor8) representation
+  - Fallback to long representation for dates > 02:08:00 Jan 23, 6053 UTC (Int32 overflow)
+  - Fix Int32 overflow for deserialized short dates close to Int32.Max
+
 ## 0.3.0
 - Refactored string interning (https://github.com/k4tan/NHessian/pull/2)
   - simpler, faster and more memory efficient
