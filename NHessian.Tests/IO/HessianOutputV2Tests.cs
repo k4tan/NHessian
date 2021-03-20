@@ -123,9 +123,45 @@ namespace NHessian.Tests.IO
             var value = new DateTime(1998, 5, 8, 9, 51, 31, DateTimeKind.Utc);
             var actual = Serialize(value);
 
-            // x4a x00 x00 x00 xd0 x4b x92 x84 xb8   # 09:51:31 May 8, 1998 UTC
+            // 09:51:31 May 8, 1998 UTC
+            // 894621091000 ms since epoch
             var expected = new HessianDataBuilder()
-                .WriteBytes(0x4a).WriteBytes(0, 0, 0, 0xd0, 0x4b, 0x92, 0x84, 0xb8)
+                .WriteBytes(0x4a).WriteBytes(0x00, 0x00, 0x00, 0xd0, 0x4b, 0x92, 0x84, 0xb8)
+                .ToArray();
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void Date_MinValue()
+        {
+            var value = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
+            // force long format by specifying seconds
+            value = value.AddSeconds(1);
+
+            var actual = Serialize(value);
+
+            // 00:00:01 Jan 1, 0001 UTC
+            // -62135596800000 ms since epoch
+            var expected = new HessianDataBuilder()
+                .WriteBytes(0x4a).WriteBytes(0xff, 0xff, 0xc7, 0x7c, 0xed, 0xd3, 0x2b, 0xe8)
+                .ToArray();
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void Date_MaxValue()
+        {
+            // hessian only supports millisecond precision
+            var value = DateTime.SpecifyKind(DateTime.Parse(DateTime.MaxValue.ToString("yyyy-MM-ddTH:mm:ss.fff")), DateTimeKind.Utc);
+
+            var actual = Serialize(value);
+
+            // 23:59:59.999 Dec 31, 9999 UTC
+            // 253402300799999 ms since epoch
+            var expected = new HessianDataBuilder()
+                .WriteBytes(0x4a).WriteBytes(0x00, 0x00, 0xe6, 0x77, 0xd2, 0x1f, 0xdb, 0xff)
                 .ToArray();
 
             CollectionAssert.AreEqual(expected, actual);
@@ -141,6 +177,58 @@ namespace NHessian.Tests.IO
             // x4b x00 xe3 x83 x8f  # 09:51:00 May 8, 1998 UTC
             var expected = new HessianDataBuilder()
                 .WriteBytes(0x4b).WriteBytes(0, 0xe3, 0x83, 0x8f)
+                .ToArray();
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void DateShort_MinValue()
+        {
+            // Although short date is limited by Int32, DateTime.MinValue
+            // is small enough to not underflow. So short date can be used
+            // all the way down to DateTime.MinValue
+            var value = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
+            var actual = Serialize(value);
+
+            // 00:00:00 Jan 1, 0001 UTC
+            // -1035593280 minutes since epoch
+            var expected = new HessianDataBuilder()
+                .WriteBytes(0x4b).WriteBytes(0xc2, 0x46, 0x19, 0xc0)
+                .ToArray();
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void DateShort_MaxValue()
+        {
+            // short format is limited by Int32. So the max date that can
+            // be sent as short_date is Int32.MaxValue since epoch
+            var value = DateTime.UnixEpoch.AddMinutes(int.MaxValue);
+            var actual = Serialize(value);
+
+            // 02:07:00 Jan 23, 6053 UTC
+            // 2147483647 minutes since epoch (Int.Max)
+            var expected = new HessianDataBuilder()
+                .WriteBytes(0x4b).WriteBytes(0x7f, 0xff, 0xff, 0xff)
+                .ToArray();
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void DateShort_Overflow()
+        {
+            // short format is limited by Int32. On overflow, we should
+            // fallback to the long version
+            var value = DateTime.UnixEpoch.AddMinutes(((long)int.MaxValue) + 1);
+            var actual = Serialize(value);
+
+            // 02:08:00 Jan 23, 6053 UTC
+            // 128849018880000 ms since epoch (Int.MaxValue minutes + 1)
+            var expected = new HessianDataBuilder()
+                .WriteBytes(0x4a).WriteBytes(0x00, 0x00, 0x75, 0x30, 0x00, 0x00, 0x00, 0x00)
                 .ToArray();
 
             CollectionAssert.AreEqual(expected, actual);
@@ -543,7 +631,6 @@ namespace NHessian.Tests.IO
 
             CollectionAssert.AreEqual(expected, actual);
         }
-
 
         [Test]
         public void Map_SparseArray()

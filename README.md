@@ -26,6 +26,7 @@ Fast and efficient Hessian v1 and v2 client library.
   - [Strings](#strings)
     - [String Interning](#string-interning)
     - [`unsafe` code](#unsafe-code)
+  - [Dates](#dates)
   - [Test-Server](#test-server)
   - [Missing](#missing)
 
@@ -73,9 +74,9 @@ Context:
 - [BenchmarkDotNet](https://github.com/dotnet/BenchmarkDotNet) was used for profiling.
 - For the `NHessian v2` test, the data stream was converted into a v2 stream using NHessian.
 
-Time | Memory Allocation
----------------|-------------------
-![Time](./docs/benchmarks/execution_time.png) |![Memory Allocation](./docs/benchmarks/memory_allocation.png)
+| Time                                          | Memory Allocation                                             |
+| --------------------------------------------- | ------------------------------------------------------------- |
+| ![Time](./docs/benchmarks/execution_time.png) | ![Memory Allocation](./docs/benchmarks/memory_allocation.png) |
 
 
 
@@ -171,7 +172,7 @@ If the above conditions do not apply and for any other fault type, NHessian will
 
 ## Strings
 
-Strings are a major chalange during deserialization. 
+Strings are a major challenge during deserialization. 
 Especially in v1 where the same type names are remoted over and over again.
 
 In order to increase performance and memory usage, NHessian contains two optimizations.
@@ -185,7 +186,7 @@ If the same set of characters has already been encountered, the previously creat
 
 ### `unsafe` code
 
-This library contains 3 unsafe code sections in `HessianStreamReader`.
+This library contains 3 unsafe code sections.
 1. `HessianStreamReader.ReadStringUnsafe`: UTF-8 parser
 2. `StringInternPool.TextEqualsUnsafe`: Compare char[] with string
 3. `StringInternPool.GetHashCodeUnsafe`: Calculate hashCode for char[]
@@ -194,6 +195,17 @@ Using unsafe code speeds up utf-8 parsing and char comparison significantly.
 
 It might be worth exploring "safe" alternatives in the future.
 
+## Dates
+.Net `DateTime` instances have one of the following kinds `Local`, `Utc` and `Unspecified`.
+The hessian protocol always specifies dates/times as UTC.
+
+During serialization, the following rules are apply:
+- If `DateTimeKind` is `Utc`, the instance is serialized as is.
+- If `DateTimeKind` is `Local`, the instance is converted to UTC and serialized.
+- If `DateTimeKind` is `Unspecified`, the instance is assumed to be `Local`. Being local, it is converted to UTC and serialized.
+
+During deserialization:
+- DateTime instances are returned as `DateTimeKind.Local` by NHessian
 
 ## Test-Server
 NHessian includes a set of integration tests targeting a server hosted on Heruko.

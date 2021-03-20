@@ -73,10 +73,12 @@ namespace NHessian.IO
         /// <inheritdoc/>
         public override void WriteDate(DateTime value)
         {
+            // NOTE DateTimeOffset ctor treats DateTimeKind.Unspecified as DateTimeKind.Local
+
             // Date represented by a 64-bits long of milliseconds since the epoch.
-            var l = new DateTimeOffset(value).ToUnixTimeMilliseconds();
+            var ms = new DateTimeOffset(value).ToUnixTimeMilliseconds();
             _streamWriter.WriteChar('d');
-            _streamWriter.WriteLong(l);
+            _streamWriter.WriteLong(ms);
         }
 
         /// <inheritdoc/>

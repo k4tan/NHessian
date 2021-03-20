@@ -178,7 +178,7 @@ namespace NHessian.IO
                 // Date represented by a 32-bits int of minutes since the epoch.
                 // ::= x4b b3 b2 b1 b0       # minutes since epoch
                 case 0x4b:
-                    var unixTimeMinutes = _streamReader.ReadInt();
+                    var unixTimeMinutes = (long)_streamReader.ReadInt();
                     return DateTimeOffset.FromUnixTimeSeconds(unixTimeMinutes * 60).DateTime.ToLocalTime();
 
                 /* STRING */
@@ -328,7 +328,7 @@ namespace NHessian.IO
                 // Date represented by a 32-bits int of minutes since the epoch.
                 // ::= x4b b3 b2 b1 b0       # minutes since epoch
                 case 0x4b:
-                    var unixTimeMinutes = _streamReader.ReadInt();
+                    var unixTimeMinutes = (long)_streamReader.ReadInt();
                     return DateTimeOffset.FromUnixTimeSeconds(unixTimeMinutes * 60).DateTime.ToLocalTime();
 
                 default:

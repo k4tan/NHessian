@@ -59,6 +59,9 @@ namespace NHessian.IO
         /// This methods main purpose is to avoid boxing behavior
         /// of <see cref="ReadObject(Type)"/> when we already know what
         /// value to expect.
+        /// <para>
+        /// The returned <see cref="DateTimeKind" /> is <see cref="DateTimeKind.Local"/>.
+        /// </para>
         /// </remarks>
         /// <returns>
         /// Returns the read date.

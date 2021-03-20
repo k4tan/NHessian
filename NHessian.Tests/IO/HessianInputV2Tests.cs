@@ -1,5 +1,6 @@
 ﻿using example;
 using NHessian.IO;
+using NHessian.IO.Utils;
 using NUnit.Framework;
 using System;
 using System.Collections;
@@ -45,13 +46,45 @@ namespace NHessian.Tests.IO
         public void Date()
         {
             // 9:51:31 May 8, 1998
+            // 894621091000 ms since epoch
             var data = new HessianDataBuilder()
                 .WriteBytes(0x4a).WriteBytes(0, 0, 0, 0xd0, 0x4b, 0x92, 0x84, 0xb8);
 
-            var expected = new DateTime(1998, 5, 8, 9, 51, 31, DateTimeKind.Utc).ToLocalTime();
+            var expected = new DateTime(1998, 5, 8, 9, 51, 31, DateTimeKind.Utc);
 
-            Assert.AreEqual(expected, new HessianInputV2(data.ToReader()).ReadObject());
-            Assert.AreEqual(expected, new HessianInputV2(data.ToReader()).ReadDate());
+            Assert.AreEqual(expected.ToLocalTime(), new HessianInputV2(data.ToReader()).ReadObject());
+            Assert.AreEqual(expected.ToLocalTime(), new HessianInputV2(data.ToReader()).ReadDate());
+        }
+
+        [Test]
+        public void Date_MinValue()
+        {
+            // 00:00:01 Jan 1, 0001 UTC
+            // -62135596800000 ms since epoch
+            var data = new HessianDataBuilder()
+                .WriteBytes(0x4a).WriteBytes(0xff, 0xff, 0xc7, 0x7c, 0xed, 0xd3, 0x2b, 0xe8);
+
+            var expected = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
+            // force long format by specifying seconds
+            expected = expected.AddSeconds(1);
+
+            Assert.AreEqual(expected.ToLocalTime(), new HessianInputV2(data.ToReader()).ReadObject());
+            Assert.AreEqual(expected.ToLocalTime(), new HessianInputV2(data.ToReader()).ReadDate());
+        }
+
+        [Test]
+        public void Date_MaxValue()
+        {
+            // 23:59:59.999 Dec 31, 9999 UTC
+            // 253402300799999 ms since epoch
+            var data = new HessianDataBuilder()
+                .WriteBytes(0x4a).WriteBytes(0x00, 0x00, 0xe6, 0x77, 0xd2, 0x1f, 0xdb, 0xff);
+
+            // hessian only supports millisecond precision
+            var expected = DateTime.SpecifyKind(DateTime.Parse(DateTime.MaxValue.ToString("yyyy-MM-ddTH:mm:ss.fff")), DateTimeKind.Utc);
+
+            Assert.AreEqual(expected.ToLocalTime(), new HessianInputV2(data.ToReader()).ReadObject());
+            Assert.AreEqual(expected.ToLocalTime(), new HessianInputV2(data.ToReader()).ReadDate());
         }
 
         [Test]
@@ -63,10 +96,45 @@ namespace NHessian.Tests.IO
             var data = new HessianDataBuilder()
                 .WriteBytes(0x4b).WriteBytes(0, 0xe3, 0x83, 0x8f);
 
-            var expected = new DateTime(1998, 5, 8, 9, 51, 0, DateTimeKind.Utc).ToLocalTime();
+            var expected = new DateTime(1998, 5, 8, 9, 51, 0, DateTimeKind.Utc);
 
-            Assert.AreEqual(expected, new HessianInputV2(data.ToReader()).ReadObject());
-            Assert.AreEqual(expected, new HessianInputV2(data.ToReader()).ReadDate());
+            Assert.AreEqual(expected.ToLocalTime(), new HessianInputV2(data.ToReader()).ReadObject());
+            Assert.AreEqual(expected.ToLocalTime(), new HessianInputV2(data.ToReader()).ReadDate());
+        }
+
+        [Test]
+        public void DateShort_MinValue()
+        {
+            // Although short date is limited by Int32, DateTime.MinValue
+            // is small enough to not underflow. So short date can be used
+            // all the way down to DateTime.MinValue
+
+            // 00:00:00 Jan 1, 0001 UTC
+            // -1035593280 minutes since epoch
+            var data = new HessianDataBuilder()
+                .WriteBytes(0x4b).WriteBytes(0xc2, 0x46, 0x19, 0xc0);
+
+            var expected = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
+
+            Assert.AreEqual(expected.ToLocalTime(), new HessianInputV2(data.ToReader()).ReadObject());
+            Assert.AreEqual(expected.ToLocalTime(), new HessianInputV2(data.ToReader()).ReadDate());
+        }
+
+        [Test]
+        public void DateShort_MaxValue()
+        {
+            // short format is limited by Int32. So the max date that can
+            // be sent as short_date is Int32.MaxValue since epoch
+
+            // 02:07:00 Jan 23, 6053 UTC
+            // 2147483647 minutes since epoch
+            var data = new HessianDataBuilder()
+                .WriteBytes(0x4b).WriteBytes(0x7f, 0xff, 0xff, 0xff);
+
+            var expected = DateTime.UnixEpoch.AddMinutes(int.MaxValue);
+
+            Assert.AreEqual(expected.ToLocalTime(), new HessianInputV2(data.ToReader()).ReadObject());
+            Assert.AreEqual(expected.ToLocalTime(), new HessianInputV2(data.ToReader()).ReadDate());
         }
 
         [TestCase(0, new byte[] { 0x90 })]

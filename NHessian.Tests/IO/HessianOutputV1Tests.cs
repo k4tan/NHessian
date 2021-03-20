@@ -184,6 +184,39 @@ namespace NHessian.Tests.IO
         }
 
         [Test]
+        public void Date_MinValue()
+        {
+            var value = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
+
+            var actual = Serialize(value);
+
+            // 00:00:00 Jan 1, 0001 UTC
+            // -62135596800000 ms since epoch
+            var expected = new HessianDataBuilder()
+                .WriteChar('d').WriteBytes(0xff, 0xff, 0xc7, 0x7c, 0xed, 0xd3, 0x28, 0x00)
+                .ToArray();
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void Date_MaxValue()
+        {
+            // hessian only supports millisecond precision
+            var value = DateTime.SpecifyKind(DateTime.Parse(DateTime.MaxValue.ToString("yyyy-MM-ddTH:mm:ss.fff")), DateTimeKind.Utc);
+
+            var actual = Serialize(value);
+
+            // 23:59:59.999 Dec 31, 9999 UTC
+            // 253402300799999 ms since epoch
+            var expected = new HessianDataBuilder()
+                .WriteChar('d').WriteBytes(0x00, 0x00, 0xe6, 0x77, 0xd2, 0x1f, 0xdb, 0xff)
+                .ToArray();
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [Test]
         public void Double12_25()
         {
             var actual = Serialize(12.25);
