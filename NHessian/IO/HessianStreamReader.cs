@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -14,17 +14,6 @@ namespace NHessian.IO
     ///   <item>Provide re-usable primitive read methods that can be used by <see cref="HessianInput"/></item>
     ///   <item>Provide a single point of optimization for stream reads</item>
     /// </list>
-    /// <para>
-    /// This implementation is using a string cache that stores strings under
-    /// a certain length (specified in constructor) and de-duplifies future occurances.
-    /// If a string can be retrevied from the cache, no allocations are performed
-    /// as the string is read into a temporary char buffer first and only turned into
-    /// a string if it doesn't exist in the cache or is too long.
-    /// </para>
-    /// <para>
-    /// This class uses unsafe code for string deserialization and comparison
-    /// (Equality, HashCode).
-    /// </para>
     /// </remarks>
     public sealed class HessianStreamReader : IDisposable
     {
@@ -47,17 +36,13 @@ namespace NHessian.IO
         /// <param name="leaveOpen">
         /// true to leave the stream open after the <see cref="HessianStreamReader"/> object is disposed;
         /// </param>
-        /// <param name="cacheMaxStringLength">
-        /// Specifies the max length of a string that will be cached.
-        /// A length of zero or less effectivly disables string caching.
-        /// </param>
         /// <exception cref="ArgumentNullException">
         /// If <paramref name="sourceStream"/> is null.
         /// </exception>
         /// <exception cref="ArgumentException">
         /// If <paramref name="sourceStream"/> is not readable.
         /// </exception>
-        public HessianStreamReader(Stream sourceStream, bool leaveOpen = false, int cacheMaxStringLength = 150)
+        public HessianStreamReader(Stream sourceStream, bool leaveOpen = false)
         {
             _stream = sourceStream ?? throw new ArgumentNullException(nameof(sourceStream));
             _leaveOpen = leaveOpen;
