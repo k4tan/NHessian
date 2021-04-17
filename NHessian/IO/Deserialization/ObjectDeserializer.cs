@@ -16,7 +16,7 @@ namespace NHessian.IO.Deserialization
         public ObjectDeserializer(Type objectType)
             : base(objectType)
         {
-            _activator = (Func<object>)Expression.Lambda(typeof(Func<object>), Expression.New(objectType)).Compile(); ;
+            _activator = (Func<object>)Expression.Lambda(typeof(Func<object>), Expression.New(objectType)).Compile();
             _fieldDeserializers = new ConcurrentDictionary<string, FieldDeserializer>();
         }
 

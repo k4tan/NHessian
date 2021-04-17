@@ -82,7 +82,7 @@ namespace NHessian.IO
                 case 0xc8: case 0xc9: case 0xca: case 0xcb: case 0xcc: case 0xcd: case 0xce: case 0xcf:
 #pragma warning restore format
                     // value = ((code - 0xc8) << 8) + b0;
-                    return (tag - 0xc8 << 8) + _streamReader.Read();
+                    return ((tag - 0xc8) << 8) + _streamReader.Read();
 
                 // Compact: three octet integers
                 // ::= [xd0-xd7] b1 b0  # -x40000 to x3ffff
@@ -90,7 +90,7 @@ namespace NHessian.IO
                 case 0xd0: case 0xd1: case 0xd2: case 0xd3: case 0xd4: case 0xd5: case 0xd6: case 0xd7:
 #pragma warning restore format
                     // value = ((code - 0xd4) << 16) + (b1 << 8) + b0;
-                    return (tag - 0xd4 << 16) + (_streamReader.Read() << 8) + _streamReader.Read();
+                    return ((tag - 0xd4) << 16) + (_streamReader.Read() << 8) + _streamReader.Read();
 
                 // ::= 'I' b3 b2 b1 b0
                 case 'I':
@@ -114,7 +114,7 @@ namespace NHessian.IO
                 case 0xf8: case 0xf9: case 0xfa: case 0xfb: case 0xfc: case 0xfd: case 0xfe: case 0xff:
 #pragma warning restore format
                     // value = ((code - 0xf8) << 8) + b0
-                    return (long)((tag - 0xf8 << 8) + _streamReader.Read());
+                    return (long)(((tag - 0xf8) << 8) + _streamReader.Read());
 
                 // Compact: three octet longs
                 // ::= [x38-x3f] b1 b0   # -x40000 to x3ffff
@@ -122,7 +122,7 @@ namespace NHessian.IO
                 case 0x38: case 0x39: case 0x3a: case 0x3b: case 0x3c: case 0x3d: case 0x3e: case 0x3f:
 #pragma warning restore format
                     // value = ((code - 0x3c) << 16) + (b1 << 8) + b0
-                    return (long)((tag - 0x3c << 16) + (_streamReader.Read() << 8) + _streamReader.Read());
+                    return (long)(((tag - 0x3c) << 16) + (_streamReader.Read() << 8) + _streamReader.Read());
 
                 // Compact: four octet longs
                 // ::= x59 b3 b2 b1 b0   # 32-bit integer cast to long
@@ -364,7 +364,7 @@ namespace NHessian.IO
                 case 0xc8: case 0xc9: case 0xca: case 0xcb: case 0xcc: case 0xcd: case 0xce: case 0xcf:
 #pragma warning restore format
                     // value = ((code - 0xc8) << 8) + b0;
-                    return (tag - 0xc8 << 8) + _streamReader.Read();
+                    return ((tag - 0xc8) << 8) + _streamReader.Read();
 
                 // Compact: three octet integers
                 // ::= [xd0-xd7] b1 b0
@@ -372,7 +372,7 @@ namespace NHessian.IO
                 case 0xd0: case 0xd1: case 0xd2: case 0xd3: case 0xd4: case 0xd5: case 0xd6: case 0xd7:
 #pragma warning restore format
                     // value = ((code - 0xd4) << 16) + (b1 << 8) + b0;
-                    return (tag - 0xd4 << 16) + (_streamReader.Read() << 8) + _streamReader.Read();
+                    return ((tag - 0xd4) << 16) + (_streamReader.Read() << 8) + _streamReader.Read();
 
                 // ::= 'I' b3 b2 b1 b0
                 case 'I':
@@ -406,7 +406,7 @@ namespace NHessian.IO
                 case 0xf8: case 0xf9: case 0xfa: case 0xfb: case 0xfc: case 0xfd: case 0xfe: case 0xff:
 #pragma warning restore format
                     // value = ((code - 0xf8) << 8) + b0
-                    return (tag - 0xf8 << 8) + _streamReader.Read();
+                    return ((tag - 0xf8) << 8) + _streamReader.Read();
 
                 // Compact: three octet longs
                 // [x38-x3f] b1 b0
@@ -414,7 +414,7 @@ namespace NHessian.IO
                 case 0x38: case 0x39: case 0x3a: case 0x3b: case 0x3c: case 0x3d: case 0x3e: case 0x3f:
 #pragma warning restore format
                     // value = ((code - 0x3c) << 16) + (b1 << 8) + b0
-                    return (tag - 0x3c << 16) + (_streamReader.Read() << 8) + _streamReader.Read();
+                    return ((tag - 0x3c) << 16) + (_streamReader.Read() << 8) + _streamReader.Read();
 
                 // Compact: four octet longs
                 // ::= x59 b3 b2 b1 b0 # 32-bit integer cast to long
