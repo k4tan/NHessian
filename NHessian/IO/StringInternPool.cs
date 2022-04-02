@@ -30,7 +30,7 @@ namespace NHessian.IO
             if (charBuf.Length < length)
                 throw new ArgumentException("length exceeds end of buffer", nameof(length));
 
-            var hashCode = GetHashCodeUnsafe(charBuf, length);
+            var hashCode = TextGetHashCode(charBuf, length);
 
             var index = hashCode & _mask;
             var head = _entries[index];
@@ -45,7 +45,7 @@ namespace NHessian.IO
             {
                 for (var current = head; ; current = current.Next)
                 {
-                    if (hashCode == current.HashCode && TextEqualsUnsafe(charBuf, length, current.Value))
+                    if (hashCode == current.HashCode && TextEquals(charBuf, length, current.Value))
                         return current.Value;
 
                     if (current.Next == null)
@@ -59,66 +59,29 @@ namespace NHessian.IO
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static unsafe bool TextEqualsUnsafe(char[] charBuff, int length, string s)
+        private static bool TextEquals(char[] charBuf, int length, string s)
         {
-            if (s.Length != length)
-                return false;
-
-            fixed (char* pBuffer = &charBuff[0])
-            fixed (char* pStr = s)
-            {
-                var a = pBuffer;
-                var b = pStr;
-                // optimize by comparing longs instead of individual bytes
-                while (length >= 12)
-                {
-                    if (*(long*)a != *(long*)b) return false;
-                    if (*(long*)(a + 4) != *(long*)(b + 4)) return false;
-                    if (*(long*)(a + 8) != *(long*)(b + 8)) return false;
-                    a += 12;
-                    b += 12;
-                    length -= 12;
-                }
-
-                // compare byte by byte once we are < 12 length
-                while (length > 0)
-                {
-                    if (*a != *b) break;
-                    a++;
-                    b++;
-                    length--;
-                }
-
-                return length <= 0;
-            }
+            return MemoryExtensions.Equals(charBuf.AsSpan(0, length), s.AsSpan(), StringComparison.Ordinal);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe int GetHashCodeUnsafe(char[] charBuffer, int length)
+        private int TextGetHashCode(char[] charBuf, int length)
         {
+            // simple hash code calculator; probably good enough for our purpose
             int hash1 = length + _hashCodeRandomizer;
             int hash2 = hash1;
-
-            if (length > 0)
+            
+            switch (length)
             {
-                fixed (char* pChar = &charBuffer[0])
-                {
-                    int* pInt = (int*)pChar;
-                    int len = length;
-
-                    while (len > 3)
-                    {
-                        hash1 = (hash1 << 5) + hash1 + (hash1 >> 27) ^ pInt[0];
-                        hash2 = (hash2 << 5) + hash2 + (hash2 >> 27) ^ pInt[1];
-                        pInt += 2;
-                        len -= 4;
-                    }
-
-                    if (len > 1)
-                    {
-                        hash1 = (hash1 << 5) + hash1 + (hash1 >> 27) ^ pInt[0];
-                    }
-                }
+                case 0:
+                    break;
+                case 1:
+                    hash1 = (hash1 << 5) + hash1 + (hash1 >> 27) ^ charBuf[0];
+                    break;
+                default:
+                    hash1 = (hash1 << 5) + hash1 + (hash1 >> 27) ^ charBuf[0];
+                    hash2 = (hash2 << 5) + hash2 + (hash2 >> 27) ^ charBuf[1];
+                    break;
             }
 
             return hash1 + (hash2 * 1566083941);
