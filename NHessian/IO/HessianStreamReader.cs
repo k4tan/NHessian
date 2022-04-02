@@ -244,7 +244,7 @@ namespace NHessian.IO
                 _charBuf = ArrayPool<char>.Shared.Rent(length);
             }
 
-            ReadStringUnsafe(_charBuf, length);
+            ReadString(_charBuf, length);
 
             return new string(_charBuf, 0, length);
         }
@@ -275,7 +275,7 @@ namespace NHessian.IO
                 _charBuf = ArrayPool<char>.Shared.Rent(length);
             }
 
-            ReadStringUnsafe(_charBuf, length);
+            ReadString(_charBuf, length);
 
             return _strInternPool.GetOrAdd(_charBuf, length);
         }
@@ -339,37 +339,26 @@ namespace NHessian.IO
             _bufferCur += count;
         }
 
-        private unsafe void ReadStringUnsafe(char[] targetBuffer, int readCount)
+        private void ReadString(char[] targetBuffer, int readCount)
         {
-            if (targetBuffer.Length < readCount)
+            for (int i = 0; i < readCount; i++)
             {
-                throw new InvalidOperationException("Not enough space in the buffer to read UTF 8 string.");
-            }
-
-            fixed (char* ta = &targetBuffer[0])
-            {
-                var pTa = ta;
-                var pTaLast = pTa + readCount;
-
-                while (pTa < pTaLast)
-                {
-                    /**
-                     * NOTE Hessian seem to only support 16 bit Unicode characters:
-                     *      Source: http://hessian.caucho.com/doc/hessian-serialization.html##string
-                     *      However, this implementation supports up to 32bit (not required but shouldn't hurt)
-                     */
-                    var b1 = Read();
-                    if (b1 < 0x80)
-                        *pTa++ = (char)b1;
-                    else if ((b1 & 0xe0) == 0xc0)
-                        *pTa++ = (char)(((b1 & 0x1f) << 6) + (Read() & 0x3f));
-                    else if ((b1 & 0xf0) == 0xe0)
-                        *pTa++ = (char)(((b1 & 0x0f) << 12) + ((Read() & 0x3f) << 6) + (Read() & 0x3f));
-                    else if ((b1 & 0xf8) == 0xf0)
-                        *pTa++ = (char)(((b1 & 0x07) << 18) + ((Read() & 0x3f) << 12) + ((Read() & 0x3f) << 6) + (Read() & 0x3f));
-                    else
-                        throw new Exception("Invalid unicode char");
-                }
+                /**
+                 * NOTE Hessian seem to only support 16 bit Unicode characters:
+                 *      Source: http://hessian.caucho.com/doc/hessian-serialization.html##string
+                 *      However, this implementation supports up to 32bit (not required but shouldn't hurt)
+                 */
+                var b1 = Read();
+                if (b1 < 0x80)
+                    targetBuffer[i] = (char)b1;
+                else if ((b1 & 0xe0) == 0xc0)
+                    targetBuffer[i] = (char)(((b1 & 0x1f) << 6) + (Read() & 0x3f));
+                else if ((b1 & 0xf0) == 0xe0)
+                    targetBuffer[i] = (char)(((b1 & 0x0f) << 12) + ((Read() & 0x3f) << 6) + (Read() & 0x3f));
+                else if ((b1 & 0xf8) == 0xf0)
+                    targetBuffer[i] = (char)(((b1 & 0x07) << 18) + ((Read() & 0x3f) << 12) + ((Read() & 0x3f) << 6) + (Read() & 0x3f));
+                else
+                    throw new Exception("Invalid unicode char");
             }
         }
     }
