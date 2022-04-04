@@ -26,7 +26,6 @@ Fast and efficient Hessian v1 and v2 client library.
     - [Error handling](#error-handling)
   - [Strings](#strings)
     - [String Interning](#string-interning)
-    - [`unsafe` code](#unsafe-code)
   - [Dates](#dates)
   - [Test-Server](#test-server)
   - [Missing](#missing)
@@ -184,17 +183,6 @@ Strings under a certain length (48 chars) and all hessian v1 type names are inte
 
 The interning works in the same way as the [Microsoft NameTable](https://docs.microsoft.com/en-us/dotnet/api/system.xml.nametable) class.
 If the same set of characters has already been encountered, the previously created string is returned. 
-
-### `unsafe` code
-
-This library contains 3 unsafe code sections.
-1. `HessianStreamReader.ReadStringUnsafe`: UTF-8 parser
-2. `StringInternPool.TextEqualsUnsafe`: Compare char[] with string
-3. `StringInternPool.GetHashCodeUnsafe`: Calculate hashCode for char[]
-
-Using unsafe code speeds up utf-8 parsing and char comparison significantly. 
-
-It might be worth exploring "safe" alternatives in the future.
 
 ## Dates
 .Net `DateTime` instances have one of the following kinds `Local`, `Utc` or `Unspecified`.
