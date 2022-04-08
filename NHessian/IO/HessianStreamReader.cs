@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace NHessian.IO
 {
@@ -135,9 +136,11 @@ namespace NHessian.IO
         public double ReadDouble()
         {
             // A 64-bit IEEE floating pointer number.
+            Span<byte> buf = stackalloc byte[8];
+
             var asLong = ReadLong();
-            var longBytes = BitConverter.GetBytes(asLong);
-            return BitConverter.ToDouble(longBytes, 0);
+            MemoryMarshal.Write(buf, ref asLong);
+            return MemoryMarshal.Read<double>(buf);
         }
 
         /// <summary>
