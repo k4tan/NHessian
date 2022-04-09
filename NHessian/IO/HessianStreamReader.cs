@@ -346,11 +346,6 @@ namespace NHessian.IO
         {
             for (int i = 0; i < readCount; i++)
             {
-                /**
-                 * NOTE Hessian seem to only support 16 bit Unicode characters:
-                 *      Source: http://hessian.caucho.com/doc/hessian-serialization.html##string
-                 *      However, this implementation supports up to 32bit (not required but shouldn't hurt)
-                 */
                 var b1 = Read();
                 if (b1 < 0x80)
                     targetBuffer[i] = (char)b1;
@@ -358,10 +353,11 @@ namespace NHessian.IO
                     targetBuffer[i] = (char)(((b1 & 0x1f) << 6) + (Read() & 0x3f));
                 else if ((b1 & 0xf0) == 0xe0)
                     targetBuffer[i] = (char)(((b1 & 0x0f) << 12) + ((Read() & 0x3f) << 6) + (Read() & 0x3f));
-                else if ((b1 & 0xf8) == 0xf0)
-                    targetBuffer[i] = (char)(((b1 & 0x07) << 18) + ((Read() & 0x3f) << 12) + ((Read() & 0x3f) << 6) + (Read() & 0x3f));
                 else
-                    throw new Exception("Invalid unicode char");
+                {
+                    // 4 byte UTF-8 is not supported. Unicode > 0xFFFF should be sent as a surrogate pair.
+                    throw new NotSupportedException("4 byte UTF8 not supported.");
+                }
             }
         }
     }

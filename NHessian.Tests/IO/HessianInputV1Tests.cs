@@ -142,6 +142,32 @@ namespace NHessian.Tests.IO
         }
 
         [Test]
+        public void String_SurrogateUnicode()
+        {
+            var str = "\ud840\udc00";
+            var reader = new HessianDataBuilder()
+                .WriteChar('S').WriteBytes(0, 0x02)
+                // Do not use WriteUtf8 (will turn into 4 byte UTF8 rather than surrogate)
+                .WriteBytes(0xED, 0xA1, 0x80, 0xED, 0xB0, 0x80)
+                .ToReader();
+
+            Assert.AreEqual(str, new HessianInputV1(reader).ReadObject());
+        }
+
+        [Test]
+        public void String_4ByteUTF8_NotSupported()
+        {
+            var str = "\ud840\udc00";
+            var reader = new HessianDataBuilder()
+                .WriteChar('S').WriteBytes(0, 0x01)
+                // WriteUtf8 will turn the surrogate pair into 4 byte UTF8
+                .WriteUtf8(str)
+                .ToReader();
+
+            Assert.Throws<NotSupportedException>(() => new HessianInputV1(reader).ReadObject());
+        }
+
+        [Test]
         public void String_MultiChunk()
         {
             var chunk1 = "hello, ";

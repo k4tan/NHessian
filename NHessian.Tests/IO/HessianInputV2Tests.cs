@@ -298,6 +298,8 @@ namespace NHessian.Tests.IO
         [TestCase("", new byte[] { 0 })]
         [TestCase("hello", new byte[] { 0x05, (byte)'h', (byte)'e', (byte)'l', (byte)'l', (byte)'o' })]
         [TestCase("\u00C3", new byte[] { 0x01, 0xc3, 0x83 })]
+        [TestCase("\uffaf", new byte[] { 0x01, 0xef, 0xbe, 0xaf })]
+        [TestCase("\ud840\udc00", new byte[] { 0x02, 0xed, 0xa1, 0x80, 0xed, 0xb0, 0x80 })]
         public void String_Short(string expected, byte[] bytes)
         {
             // can be up to 31 chars
@@ -306,6 +308,20 @@ namespace NHessian.Tests.IO
             Assert.AreEqual(expected, new HessianInputV2(data.ToReader()).ReadObject());
             Assert.AreEqual(expected, new HessianInputV2(data.ToReader()).ReadString());
         }
+
+        [Test]
+        public void String_4ByteUTF8_NotSupported()
+        {
+            var str = "\ud840\udc00";
+            var reader = new HessianDataBuilder()
+                .WriteChar('S').WriteBytes(0, 0x01)
+                // WriteUtf8 will turn the surrogate pair into 4 byte UTF8
+                .WriteUtf8(str)
+                .ToReader();
+
+            Assert.Throws<NotSupportedException>(() => new HessianInputV1(reader).ReadObject());
+        }
+
 
         [Test]
         public void String_Medium()

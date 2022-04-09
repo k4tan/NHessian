@@ -493,6 +493,24 @@ namespace NHessian.Tests.IO
         }
 
         [Test]
+        public void String_Surrogate()
+        {
+            // 𠀀 - Can be represented as:
+            //    Unicode         U+20000         (4-byte UTF8)
+            //    Surrogate Pair  U+D840, U+DC00  (2x 3-byte UTF8)
+            var str = "\ud840\udc00";
+
+            var actual = Serialize(str);
+
+            // use surrogate pair
+            var expected = new HessianDataBuilder()
+                .WriteChar('S').WriteBytes(0, 0x02).WriteBytes(0xED, 0xA1, 0x80, 0xED, 0xB0, 0x80)
+                .ToArray();
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [Test]
         public void String_MultiChunk()
         {
             // we need to provoke string length larger than 16bit

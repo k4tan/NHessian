@@ -62,7 +62,13 @@ namespace NHessian.Tests.Client
                 0x7ff,
                 -0x80000001,
                 3.14159,
-                "any string"
+                "any string",
+                // 2 byte UTF-8 (߿)
+                "\u07FF",
+                // 3 byte UTF-8 (ﾯ)
+                "\uffaf",
+                // 4 byte UTF-8 (𠀀 / Surrogate Pair)
+                "\ud840\udc00"
             };
 
             for (int i = 0; i < values.Length; i++)

@@ -724,10 +724,29 @@ namespace NHessian.Tests.IO
         [TestCase("", new byte[] { 0 })]
         [TestCase("hello", new byte[] { 0x05, (byte)'h', (byte)'e', (byte)'l', (byte)'l', (byte)'o' })]
         [TestCase("\u00C3", new byte[] { 0x01, 0xc3, 0x83 })]
+        [TestCase("\uFFAA", new byte[] { 0x01, 0xef, 0xbe, 0xaa })]
         public void String_Short(string value, byte[] expected)
         {
             // can be up to 31 chars
             var actual = Serialize(value);
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void String_Surrogate()
+        {
+            // 𠀀 - Can be represented as:
+            //    Unicode         U+20000         (4-byte UTF8)
+            //    Surrogate Pair  U+D840, U+DC00  (2x 3-byte UTF8)
+            var str = "\ud840\udc00";
+
+            var actual = Serialize(str);
+
+            // use surrogate pair
+            var expected = new HessianDataBuilder()
+                .WriteBytes(0x02).WriteBytes(0xED, 0xA1, 0x80, 0xED, 0xB0, 0x80)
+                .ToArray();
 
             CollectionAssert.AreEqual(expected, actual);
         }

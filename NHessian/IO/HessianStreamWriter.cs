@@ -167,7 +167,39 @@ namespace NHessian.IO
         /// <exception cref="ObjectDisposedException">
         /// Methods were called after the stream was closed.
         /// </exception>
-        public void WriteRawString(string value) => WriteBytes(Encoding.UTF8.GetBytes(value));
+        public void WriteRawString(string value) 
+        {
+            /* NOTE to Surrogates
+             * 
+             * A 'char' in .Net represents a value 0-65535. This does not conver all Unicode characters!
+             * A unicode character > 65535 has to be encoded as two chars (surrogate pair).
+             * A surrogate is a value in the range 0xD00 - 0xDFF (reserved in unicode set).
+             * So a surrogate is also a valid unicode character (although useless w/o with other half of the pair).
+             * 
+             * In this implementation, we do NOT turn surrogate pairs into 4-byte UTF-8.
+             * Rather, surrogate pairs are sent as two 3-byte UTF-8.
+             * Therefore, 4-byte UTF-8 is never used here.
+             */
+            for (int i = 0; i < value.Length; i++)
+            {
+                var c = value[i];
+                if (c < 0x80)
+                {
+                    WriteByte((byte)c);
+                }
+                else if (c < 0x800)
+                {
+                    WriteByte((byte)(0xc0 + ((c >> 6) & 0x1f)));
+                    WriteByte((byte)(0x80 + (c & 0x3f)));
+                }
+                else
+                {
+                    WriteByte((byte)(0xe0 + ((c >> 12) & 0xf)));
+                    WriteByte((byte)(0x80 + ((c >> 6) & 0x3f)));
+                    WriteByte((byte)(0x80 + (c & 0x3f)));
+                }
+            }
+        }
 
         /// <summary>
         /// Writes a short (Int16) to the stream.
