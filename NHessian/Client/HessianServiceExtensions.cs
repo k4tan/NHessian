@@ -37,6 +37,7 @@ namespace NHessian.Client
         /// <returns>
         /// Returns the created hessian service.
         /// </returns>
+        [Obsolete("Use the other overload instead.")]
         public static T HessianService<T>(
             this HttpClient httpClient,
             Uri endpoint,
@@ -44,11 +45,44 @@ namespace NHessian.Client
             ProtocolVersion protocolVersion = ProtocolVersion.V2,
             bool unwrapServiceExceptions = true)
         {
+            var options = new ClientOptions()
+            {
+                ProtocolVersion = protocolVersion,
+                TypeBindings = typeBindings,
+                UnwrapServiceExceptions = unwrapServiceExceptions
+            };
+
+            return httpClient.HessianService<T>(endpoint, options);
+        }
+
+        /// <summary>
+        /// Create a hessian service proxy for the provided type <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The hessian service type.
+        /// </typeparam>
+        /// <param name="httpClient">
+        /// The client used to communicate with the hessian remote endpoint.
+        /// </param>
+        /// <param name="endpoint">
+        /// The service endpoint.
+        /// </param>
+        /// <param name="options">
+        /// Instance containing additional options.
+        /// </param>
+        /// <returns>
+        /// Returns the created hessian service.
+        /// </returns>
+        public static T HessianService<T>(
+            this HttpClient httpClient,
+            Uri endpoint,
+            ClientOptions options)
+        {
             if (httpClient == null) throw new ArgumentNullException(nameof(httpClient));
             if (endpoint == null) throw new ArgumentNullException(nameof(endpoint));
 
             var proxy = DispatchProxy.Create<T, HessianProxy>();
-            ((HessianProxy)(object)proxy).Initialize(httpClient, endpoint, typeBindings, protocolVersion, unwrapServiceExceptions);
+            ((HessianProxy)(object)proxy).Initialize(httpClient, endpoint, options);
             return proxy;
         }
     }

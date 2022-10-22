@@ -14,11 +14,12 @@ Fast and efficient Hessian v1 and v2 client library.
 - [NHessian](#nhessian)
   - [Table of Contents](#table-of-contents)
   - [Usage](#usage)
+    - [Simple usage](#simple-usage)
+    - [Advanced usage](#advanced-usage)
   - [Motivation](#motivation)
   - [Performance](#performance)
     - [Benchmarks](#benchmarks)
   - [Advanced Usages](#advanced-usages)
-    - [Async support](#async-support)
     - [Custom type bindings](#custom-type-bindings)
     - [Field de-/serialization rules](#field-de-serialization-rules)
       - [Defaults](#defaults)
@@ -31,6 +32,10 @@ Fast and efficient Hessian v1 and v2 client library.
   - [Missing](#missing)
 
 ## Usage
+
+### Simple usage
+
+The easiest way to use this library is the built in `HessianService` extension. 
 
 ```csharp
 /*
@@ -45,6 +50,43 @@ var service = new System.Net.Http.HttpClient()
         new Uri("https://nhessian-hessian-test.herokuapp.com/hessian/test"));
 
 Console.WriteLine(service.hello());   // "Hello, World"
+```
+
+`HessianService` also supports async execution out of the box. Simply use `Task` or `Task<T>` as the result type and the call is executed async.
+
+```csharp
+/*
+ * public interface ITestService
+ * {    
+ *     Task<string> hello();
+ * }
+ */
+
+var service = new System.Net.Http.HttpClient()
+    .HessianService<ITestService>(
+        new Uri("https://nhessian-hessian-test.herokuapp.com/hessian/test"));
+
+Console.WriteLine(await service.hello())   // "Hello, World"
+```
+
+### Advanced usage
+
+`HessianService` is often too limited as it hides all of the `HttpClient` code. For example, it is not possible to check the HTTP Code, cancel or use libraries like `Polly` to implement retry. For those scenarios `HessianContent` and `ReadAsHessianAsync` can be used to retain low level access.
+
+```csharp
+var options = new ClientOptions();
+
+var response = await new HttpClient()
+    .SendAsync(new HttpRequestMessage()
+    {
+        Method = HttpMethod.Post,
+        RequestUri = new Uri("https://nhessian-hessian-test.herokuapp.com/hessian/test"),
+        Content = new HessianContent("hello", Array.Empty<object>(), options)
+    });
+
+var result = await response.Content.ReadAsHessianAsync(typeof(string), options);
+
+Console.WriteLine(result);   // "Hello, World"
 ```
 
 ## Motivation
@@ -81,26 +123,6 @@ Context:
 
 
 ## Advanced Usages
-
-### Async support
-
-NHessian supports async execution out of the box. 
-Simply use `Task` or `Task<T>` as the result type and the call is executed async.
-
-```csharp
-/*
- * public interface ITestService
- * {    
- *     Task<string> hello();
- * }
- */
-
-var service = new System.Net.Http.HttpClient()
-    .HessianService<ITestService>(
-        new Uri("https://nhessian-hessian-test.herokuapp.com/hessian/test"));
-
-Console.WriteLine(await service.hello())   // "Hello, World"
-```
 
 ### Custom type bindings
 
