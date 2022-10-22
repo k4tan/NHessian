@@ -56,13 +56,6 @@ namespace NHessian.Client
             }
         }
 
-        private HessianOutput CreateOutput(HessianStreamWriter writer)
-        {
-            return _options.ProtocolVersion == ProtocolVersion.V1
-                        ? (HessianOutput)new HessianOutputV1(writer, _options.TypeBindings)
-                        : new HessianOutputV2(writer, _options.TypeBindings);
-        }
-
         private async Task<object> HandleResponse(HttpResponseMessage responseMessage, Type returnType)
         {
             var responseStream = await responseMessage.Content.ReadAsStreamAsync();
@@ -128,7 +121,7 @@ namespace NHessian.Client
         {
             var request = new HttpRequestMessage(HttpMethod.Post, _endpoint)
             {
-                Content = new HessianContent(CreateOutput, methodName, args)
+                Content = new HessianContent(methodName, args, _options)
             };
             var responseMessage = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
             responseMessage.EnsureSuccessStatusCode();
