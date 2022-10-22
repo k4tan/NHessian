@@ -56,38 +56,10 @@ namespace NHessian.Client
             }
         }
 
-        private async Task<object> HandleResponse(HttpResponseMessage responseMessage, Type returnType)
-        {
-            var responseStream = await responseMessage.Content.ReadAsStreamAsync();
-            using (var reader = new HessianStreamReader(responseStream))
-            {
-                // we assume the server responds using the same protocol version
-                var input = _options.ProtocolVersion == ProtocolVersion.V1
-                    ? (HessianInput)new HessianInputV1(reader, _options.TypeBindings)
-                    : new HessianInputV2(reader, _options.TypeBindings);
-
-                var reply = input.ReadReply(returnType);
-
-                if (reply is HessianRemoteException ex)
-                {
-                    if (_options.UnwrapServiceExceptions
-                        && ex.Code == FaultCode.ServiceException
-                        && ex.InnerException != null)
-                    {
-                        // throw the remoted exception if configured
-                        throw ex.InnerException;
-                    }
-                    throw ex;
-                }
-
-                return reply;
-            }
-        }
-
         private async Task<object> HttpInvoke(string methodName, Type returnType, object[] args)
         {
             var responseMessage = await SendRequest(methodName, args);
-            return await HandleResponse(responseMessage, returnType);
+            return await responseMessage.Content.ReadAsHessianAsync(returnType, _options);
         }
 
         private Task InvokeAsync(string methodName, Type returnType, object[] args)
