@@ -1,4 +1,4 @@
-﻿using NHessian.IO;
+using NHessian.IO;
 using System;
 using System.Net.Http;
 using System.Reflection;
@@ -10,16 +10,12 @@ namespace NHessian.Client
     {
         private Uri _endpoint;
         private HttpClient _httpClient;
-        private ProtocolVersion _protocolVersion;
-        private TypeBindings _typeBindings;
-        private bool _unwrapServiceException;
+        private ClientOptions _options;
 
         public void Initialize(
             HttpClient httpClient,
             Uri endpoint,
-            TypeBindings typeBindings = null,
-            ProtocolVersion protocolVersion = ProtocolVersion.V2,
-            bool unwrapServiceExceptions = true)
+            ClientOptions options = default)
         {
             /*
              * Initialize is required because this instance is created
@@ -27,9 +23,7 @@ namespace NHessian.Client
              */
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
-            _protocolVersion = protocolVersion;
-            _unwrapServiceException = unwrapServiceExceptions;
-            _typeBindings = typeBindings;
+            _options = options;
         }
 
         /// <inheritdoc/>
@@ -64,9 +58,9 @@ namespace NHessian.Client
 
         private HessianOutput CreateOutput(HessianStreamWriter writer)
         {
-            return _protocolVersion == ProtocolVersion.V1
-                        ? (HessianOutput)new HessianOutputV1(writer, _typeBindings)
-                        : new HessianOutputV2(writer, _typeBindings);
+            return _options.ProtocolVersion == ProtocolVersion.V1
+                        ? (HessianOutput)new HessianOutputV1(writer, _options.TypeBindings)
+                        : new HessianOutputV2(writer, _options.TypeBindings);
         }
 
         private async Task<object> HandleResponse(HttpResponseMessage responseMessage, Type returnType)
@@ -75,15 +69,15 @@ namespace NHessian.Client
             using (var reader = new HessianStreamReader(responseStream))
             {
                 // we assume the server responds using the same protocol version
-                var input = _protocolVersion == ProtocolVersion.V1
-                    ? (HessianInput)new HessianInputV1(reader, _typeBindings)
-                    : new HessianInputV2(reader, _typeBindings);
+                var input = _options.ProtocolVersion == ProtocolVersion.V1
+                    ? (HessianInput)new HessianInputV1(reader, _options.TypeBindings)
+                    : new HessianInputV2(reader, _options.TypeBindings);
 
                 var reply = input.ReadReply(returnType);
 
                 if (reply is HessianRemoteException ex)
                 {
-                    if (_unwrapServiceException
+                    if (_options.UnwrapServiceExceptions
                         && ex.Code == FaultCode.ServiceException
                         && ex.InnerException != null)
                     {

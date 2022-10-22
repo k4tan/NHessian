@@ -26,10 +26,12 @@ namespace NHessian.Tests.Client
              */
             _service = new HttpClient()
                 .HessianService<ITestService>(
-                //new Uri("http://localhost:8080/hessian/test"),
                 new Uri("https://nhessian-hessian-test.herokuapp.com/hessian/test"),
-                TypeBindings.Java,
-                protocolVersion);
+                new ClientOptions()
+                {
+                    TypeBindings = TypeBindings.Java,
+                    ProtocolVersion = protocolVersion
+                });
         }
 
         [Test]
