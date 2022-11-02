@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0
+
+- all `unsafe` methods replaced with managed versions
+- improve Unicode support (deal better with surrogate pairs)
+- expose `HessianContent` and `ReadAsHessianAsync` for lower level control of hessian calls
+- reduce allocations
+
 ## 0.3.1
 - Fix DateTime serialization issues in Hessian V2. This issues effect the [Short DateTime](http://hessian.caucho.com/doc/hessian-serialization.html#anchor8) representation
   - Fallback to long representation for dates > 02:08:00 Jan 23, 6053 UTC (Int32 overflow)
