@@ -38,11 +38,6 @@ steps:
     command: 'build'
     arguments: '--configuration $(BuildConfiguration)'
 
-
-- script: |
-    curl hessian:8080
-    curl http://hessian:8080
-
 # Run all tests with "/p:CollectCoverage=true /p:CoverletOutputFormat=cobertura" to generate the code coverage file
 - task: DotNetCoreCLI@2
   inputs:
