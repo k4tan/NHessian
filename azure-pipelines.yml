@@ -8,18 +8,14 @@ trigger:
     include:
     - '*'
 
-resources:
-  containers:
-    - container: hessian-test-server
-      image: k4tan/hessian-test-server:latest
-      ports:
-        - "8080:8080"
-
 pool:
   vmImage: 'ubuntu-latest'
 
 services:
-  hessian-test-server: hessian-test-server
+  hessian:
+    image: k4tan/hessian-test-server:latest
+    ports:
+    - 8080/tcp
 
 variables:
   solution: '**/*.sln'

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RunSettings>
     <TestRunParameters>
-        <Parameter name="test-server-url" value="http://hessian-test-server:8080" />
+        <Parameter name="test-server-url" value="http://hessian:8080" />
     </TestRunParameters>
 </RunSettings>
