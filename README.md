@@ -47,7 +47,7 @@ The easiest way to use this library is the built in `HessianService` extension.
 
 var service = new System.Net.Http.HttpClient()
     .HessianService<ITestService>(
-        new Uri("https://nhessian-hessian-test.herokuapp.com/hessian/test"));
+        new Uri("http://localhost:8080/hessian/test"));
 
 Console.WriteLine(service.hello());   // "Hello, World"
 ```
@@ -64,7 +64,7 @@ Console.WriteLine(service.hello());   // "Hello, World"
 
 var service = new System.Net.Http.HttpClient()
     .HessianService<ITestService>(
-        new Uri("https://nhessian-hessian-test.herokuapp.com/hessian/test"));
+        new Uri("http://localhost:8080/hessian/test"));
 
 Console.WriteLine(await service.hello())   // "Hello, World"
 ```
@@ -80,7 +80,7 @@ var response = await new HttpClient()
     .SendAsync(new HttpRequestMessage()
     {
         Method = HttpMethod.Post,
-        RequestUri = new Uri("https://nhessian-hessian-test.herokuapp.com/hessian/test"),
+        RequestUri = new Uri("http://localhost:8080/hessian/test"),
         Content = new HessianContent("hello", Array.Empty<object>(), options)
     });
 
@@ -143,7 +143,7 @@ The `TypeBindings` class and paramter allows it define custom bindings.
 
 var service = new System.Net.Http.HttpClient()
     .HessianService<ITestService>(
-        new Uri("https://nhessian-hessian-test.herokuapp.com/hessian/test"),
+        new Uri("http://localhost:8080/hessian/test"),
         TypeBindings.Java);
 
 Console.WriteLine(await service.hello())   // "Hello, World"
@@ -219,9 +219,12 @@ During deserialization:
 - DateTime instances are returned as `DateTimeKind.Local` by NHessian
 
 ## Test-Server
-NHessian includes a set of integration tests targeting a server hosted on Heruko.
+NHessian includes a set of integration tests. The server project can be found here: https://github.com/k4tan/NHessian-TestServer
 
-The project can be found here: https://github.com/k4tan/NHessian-TestServer
+The server is available as a docker image. Before running tests, start the server via:
+```bash
+docker run --rm -it -p 8080:8080 k4tan/hessian-test-server:latest
+```
 
 ## Missing
 

@@ -1,9 +1,6 @@
 ﻿using com.caucho.hessian.test;
 using NHessian.Client;
-using NHessian.IO;
 using NUnit.Framework;
-using System;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace NHessian.Tests.Client
@@ -17,20 +14,7 @@ namespace NHessian.Tests.Client
 
         public Test2ServiceTests(ProtocolVersion protocolVersion)
         {
-            /*
-             * test server is a `hessian-test.jar`
-             * downloadable here:
-             *     http://www.java2s.com/Code/JarDownload/hessian/hessian-test.jar.zip
-             *  OR http://hessian.caucho.com/#Java
-             */
-            _service = new HttpClient()
-                .HessianService<ITest2Service>(
-                new Uri(ServerInfo.TestServer, "/hessian/test2"),
-                new ClientOptions
-                {
-                    TypeBindings = TypeBindings.Java,
-                    ProtocolVersion = protocolVersion
-                });
+            _service = Setup.CreateService<ITest2Service>("/hessian/test2", protocolVersion);
         }
 
         [Test]

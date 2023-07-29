@@ -11,6 +11,12 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+services:
+  hessian:
+    image: k4tan/hessian-test-server:latest
+    ports:
+    - 8080:8080
+
 variables:
   solution: '**/*.sln'
   buildPlatform: 'Any CPU'
