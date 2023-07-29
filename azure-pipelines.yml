@@ -7,7 +7,7 @@ trigger:
 - main
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'ubuntu-latest'
 
 variables:
   solution: '**/*.sln'
@@ -15,10 +15,16 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
+- task: UseDotNet@2  # Use the UseDotNet task to select the .NET SDK version you want to use
+  inputs:
+    version: '6.x'  # Update this to the .NET SDK version you want to use
+    includePreviewVersions: true
+
 - task: DotNetCoreCLI@2
   inputs:
     command: 'restore'
     feedsToUse: 'select'
+
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
