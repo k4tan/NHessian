@@ -17,20 +17,29 @@ namespace NHessian.Tests.Client
 
         public Test2ServiceTests(ProtocolVersion protocolVersion)
         {
-            /*
-             * test server is a `hessian-test.jar`
-             * downloadable here:
-             *     http://www.java2s.com/Code/JarDownload/hessian/hessian-test.jar.zip
-             *  OR http://hessian.caucho.com/#Java
-             */
-            _service = new HttpClient()
-                .HessianService<ITest2Service>(
-                new Uri(ServerInfo.TestServer, "/hessian/test2"),
-                new ClientOptions
-                {
-                    TypeBindings = TypeBindings.Java,
-                    ProtocolVersion = protocolVersion
-                });
+            var urlParamName = "test-server-url";
+            if (TestContext.Parameters.Exists(urlParamName))
+            {
+                var serverUrl = new Uri(TestContext.Parameters.Get(urlParamName));
+
+                _service = new HttpClient()
+                    .HessianService<ITest2Service>(
+                        new Uri(serverUrl, "/hessian/test2"),
+                        new ClientOptions
+                        {
+                            TypeBindings = TypeBindings.Java,
+                            ProtocolVersion = protocolVersion
+                        });
+            }
+        }
+
+        [SetUp]
+        public void BeforeEach()
+        {
+            if (_service == null)
+            {
+                Assert.Ignore("No server URL parameter provided. Skipping integration test.");
+            }
         }
 
         [Test]

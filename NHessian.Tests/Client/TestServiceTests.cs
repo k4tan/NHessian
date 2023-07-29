@@ -6,6 +6,8 @@ using com.caucho.hessian.test;
 using System.Threading.Tasks;
 using java.lang;
 using NHessian.IO;
+using System.Xml.Xsl;
+using NUnit.Framework.Internal;
 
 namespace NHessian.Tests.Client
 {
@@ -18,21 +20,31 @@ namespace NHessian.Tests.Client
 
         public TestServiceTests(ProtocolVersion protocolVersion)
         {
-            /*
-             * test server is a `hessian-test.jar`
-             * downloadable here:
-             *     http://www.java2s.com/Code/JarDownload/hessian/hessian-test.jar.zip
-             *  OR http://hessian.caucho.com/#Java
-             */
-            _service = new HttpClient()
-                .HessianService<ITestService>(
-                new Uri(ServerInfo.TestServer, "/hessian/test"),
-                new ClientOptions()
-                {
-                    TypeBindings = TypeBindings.Java,
-                    ProtocolVersion = protocolVersion
-                });
+            var urlParamName = "test-server-url";
+            if (TestContext.Parameters.Exists(urlParamName))
+            {
+                var serverUrl = new Uri(TestContext.Parameters.Get(urlParamName));
+
+                _service = new HttpClient()
+                    .HessianService<ITestService>(
+                        new Uri(serverUrl, "/hessian/test"),
+                        new ClientOptions()
+                        {
+                            TypeBindings = TypeBindings.Java,
+                            ProtocolVersion = protocolVersion
+                        });
+            }
         }
+
+        [SetUp]
+        public void BeforeEach()
+        {
+            if (_service == null)
+            {
+                Assert.Ignore("No server URL parameter provided. Skipping integration test.");
+            }
+        }
+
 
         [Test]
         public async Task NullCall()
