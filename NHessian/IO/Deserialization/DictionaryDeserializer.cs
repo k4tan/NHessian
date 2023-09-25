@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace NHessian.IO.Deserialization
@@ -7,6 +8,7 @@ namespace NHessian.IO.Deserialization
     internal class DictionaryDeserializer : MapDeserializer
     {
         private readonly Func<IDictionary> _activator;
+        private readonly string[] _fieldNames;
 
         public DictionaryDeserializer(Type dictionaryType)
             : base(dictionaryType)
@@ -28,12 +30,26 @@ namespace NHessian.IO.Deserialization
             }
         }
 
+        protected DictionaryDeserializer(ClassDefinition definition)
+            : base(typeof(Dictionary<object, object>))
+        {
+            // constructor for compact serialization
+            if (definition is null)
+                throw new ArgumentNullException(nameof(definition));
+
+            _activator = (Func<IDictionary>)Expression.Lambda(typeof(Func<IDictionary>), Expression.New(MapType)).Compile();
+
+            KeyType = ValueType = typeof(string);
+
+            _fieldNames = definition.FieldNames;
+        }
+
         private Type KeyType { get; }
         private Type ValueType { get; }
 
         public override MapDeserializer AsCompact(ClassDefinition typeDef)
         {
-            throw new NotSupportedException("There is no compact version of a dictionary");
+            return new DictionaryDeserializer(typeDef);
         }
 
         public override object CreateMap(HessianInput input) => _activator();
@@ -42,9 +58,20 @@ namespace NHessian.IO.Deserialization
         {
             var dict = (IDictionary)map;
 
-            // NOTE potential boxing here; probably not worth figuring out how to avoid
-            while (!input.IsEnd())
-                dict.Add(input.ReadObject(KeyType), input.ReadObject(ValueType));
+            if (_fieldNames is not null)
+            {
+                // compact representation
+                for (int i = 0; i < _fieldNames.Length; i++)
+                {
+                    dict.Add(_fieldNames[i], input.ReadObject(ValueType));
+                }
+            }
+            else
+            {
+                // NOTE potential boxing here; probably not worth figuring out how to avoid
+                while (!input.IsEnd())
+                    dict.Add(input.ReadObject(KeyType), input.ReadObject(ValueType));
+            }
         }
     }
 }

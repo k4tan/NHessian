@@ -366,6 +366,39 @@ namespace NHessian.Tests.IO
         }
 
         [Test]
+        public void Map_Object_UnknownType()
+        {
+            // car example is taken from hessian spec wesite
+            var reader = new HessianDataBuilder()
+                // map
+                .WriteChar('M')
+                // type (from the website example)
+                .WriteChar('t').WriteBytes(0, 0x12).WriteUtf8("non_existent_class")
+                // model field
+                .WriteChar('S').WriteBytes(0, 0x05).WriteUtf8("model")
+                .WriteChar('S').WriteBytes(0, 0x06).WriteUtf8("Beetle")
+                // color field
+                .WriteChar('S').WriteBytes(0, 0x05).WriteUtf8("color")
+                .WriteChar('S').WriteBytes(0, 0x0A).WriteUtf8("aquamarine")
+                // mileage field
+                .WriteChar('S').WriteBytes(0, 0x07).WriteUtf8("mileage")
+                .WriteChar('I').WriteBytes(0, 0x01, 0, 0)
+                // map end
+                .WriteChar('z')
+                .ToReader();
+
+            var expected = new Dictionary<object, object>
+            {
+                { "model",  "Beetle" },
+                { "color", "aquamarine" },
+                { "mileage", 65536 }
+            };
+
+            CollectionAssert.AreEquivalent(expected, (Dictionary<object, object>)new HessianInputV1(reader).ReadObject());
+        }
+
+
+        [Test]
         public void Map_SparseArray()
         {
             var reader = new HessianDataBuilder()

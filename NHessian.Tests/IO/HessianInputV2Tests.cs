@@ -672,6 +672,36 @@ namespace NHessian.Tests.IO
         }
 
         [Test]
+        public void Map_Object_UnknownType()
+        {
+            // car example is taken from hessian spec wesite
+            var reader = new HessianDataBuilder()
+                .WriteChar('M') // map
+
+                .WriteBytes(0x12).WriteUtf8("non_existent_class") // non existent type
+
+                .WriteBytes(0x05).WriteUtf8("model")
+                .WriteBytes(0x06).WriteUtf8("Beetle")
+
+                .WriteBytes(0x05).WriteUtf8("color")
+                .WriteBytes(0x0a).WriteUtf8("aquamarine")
+
+                .WriteBytes(0x07).WriteUtf8("mileage")
+                .WriteChar('I').WriteBytes(0, 0x01, 0, 0)
+
+                .WriteChar('Z') // map end
+                .ToReader();
+
+            var expected = new Dictionary<object, object>
+            {
+                { "model",  "Beetle" },
+                { "color", "aquamarine" },
+                { "mileage", 65536 }
+            };
+            CollectionAssert.AreEquivalent(expected, (Dictionary<object, object>)new HessianInputV2(reader).ReadObject());
+        }
+
+        [Test]
         public void Map_CompactObject_1()
         {
             // car example is taken from hessian spec wesite
@@ -740,6 +770,34 @@ namespace NHessian.Tests.IO
             // read-only fields are ignored
             Assert.IsNull(actual.readonlyStr);
             Assert.IsNull(actual.nonSerializedStr);
+        }
+
+        [Test]
+        public void Map_CompactObject_UnknownType()
+        {
+            // car example is taken from hessian spec wesite
+            var reader = new HessianDataBuilder()
+                .WriteChar('C') // definition
+                .WriteBytes(0x12).WriteUtf8("non_existent_class") // non existent type
+                .WriteBytes(0x93) // 3 fields
+                .WriteBytes(0x05).WriteUtf8("model")
+                .WriteBytes(0x05).WriteUtf8("color")
+                .WriteBytes(0x07).WriteUtf8("mileage")
+
+                .WriteBytes(0x60) // instance
+                .WriteBytes(0x06).WriteUtf8("Beetle")
+                .WriteBytes(0x0a).WriteUtf8("aquamarine")
+                .WriteChar('I').WriteBytes(0, 0x01, 0, 0)
+
+                .ToReader();
+
+            var expected = new Dictionary<object, object>
+            {
+                { "model",  "Beetle" },
+                { "color", "aquamarine" },
+                { "mileage", 65536 }
+            };
+            CollectionAssert.AreEquivalent(expected, (Dictionary<object, object>) new HessianInputV2(reader).ReadObject());
         }
 
         [Test]
