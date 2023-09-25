@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+- fix: compact representations of an unknown class could not be deserialized
+
 ## 0.4.0
 
 - all `unsafe` methods replaced with managed versions
