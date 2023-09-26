@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.2
+
+perf: use internal buffer in HessianStreamWriter #10
+
 ## 0.4.1
 
 - fix: compact representations of an unknown class could not be deserialized
