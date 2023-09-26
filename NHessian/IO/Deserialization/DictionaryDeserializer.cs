@@ -39,7 +39,7 @@ namespace NHessian.IO.Deserialization
 
             _activator = (Func<IDictionary>)Expression.Lambda(typeof(Func<IDictionary>), Expression.New(MapType)).Compile();
 
-            KeyType = ValueType = typeof(string);
+            KeyType = ValueType = typeof(object);
 
             _fieldNames = definition.FieldNames;
         }

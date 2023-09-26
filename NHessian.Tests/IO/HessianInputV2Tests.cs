@@ -787,7 +787,10 @@ namespace NHessian.Tests.IO
                 .WriteBytes(0x60) // instance
                 .WriteBytes(0x06).WriteUtf8("Beetle")
                 .WriteBytes(0x0a).WriteUtf8("aquamarine")
-                .WriteChar('I').WriteBytes(0, 0x01, 0, 0)
+
+                .WriteChar('M')
+                .WriteBytes(0x13).WriteUtf8("com.caucho.test.Car") // type
+                .WriteChar('Z')
 
                 .ToReader();
 
@@ -795,7 +798,7 @@ namespace NHessian.Tests.IO
             {
                 { "model",  "Beetle" },
                 { "color", "aquamarine" },
-                { "mileage", 65536 }
+                { "mileage", new com.caucho.test.Car() }
             };
             CollectionAssert.AreEquivalent(expected, (Dictionary<object, object>) new HessianInputV2(reader).ReadObject());
         }
