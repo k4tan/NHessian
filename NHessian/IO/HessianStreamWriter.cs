@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace NHessian.IO
 {
@@ -19,6 +18,9 @@ namespace NHessian.IO
     {
         private readonly bool _leaveOpen;
         private readonly Stream _stream;
+        // Stream.WriteByte allocates an array in the default implementation. 
+        // Use internal buffer to call Stream.Write that does not allocate.
+        private byte[] _eightByteBuffer = new byte[8];
 
         /// <summary>
         /// Initialize a new instance of <see cref="HessianStreamWriter"/>.
@@ -59,7 +61,12 @@ namespace NHessian.IO
         /// Methods were called after the stream was closed.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteByte(byte value) => _stream.WriteByte(value);
+        public void WriteByte(byte value)
+        {
+            _eightByteBuffer[0] = value;
+
+            _stream.Write(_eightByteBuffer, 0, 1);
+        }
 
         /// <summary>
         /// Writes a subarray of bytes to the stream.
@@ -102,7 +109,10 @@ namespace NHessian.IO
         /// <exception cref="ObjectDisposedException">
         /// <see cref="WriteBytes(byte[],int,int)"/> was called after the stream was closed.
         /// </exception>
-        public void WriteBytes(byte[] buffer) => WriteBytes(buffer, 0, buffer.Length);
+        public void WriteBytes(byte[] buffer)
+        {
+            _stream.Write(buffer, 0, buffer.Length);
+        }
 
         /// <summary>
         /// Writes a char to the stream.
@@ -112,7 +122,12 @@ namespace NHessian.IO
         /// Methods were called after the stream was closed.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteChar(char value) => WriteByte((byte)value);
+        public void WriteChar(char value)
+        {
+            _eightByteBuffer[0] = (byte)value;
+
+            _stream.Write(_eightByteBuffer, 0, 1);
+        }
 
         /// <summary>
         /// Writes a double to the stream.
@@ -132,10 +147,12 @@ namespace NHessian.IO
         /// </exception>
         public void WriteInt(int value)
         {
-            WriteByte((byte)(value >> 24));
-            WriteByte((byte)(value >> 16));
-            WriteByte((byte)(value >> 8));
-            WriteByte((byte)value);
+            _eightByteBuffer[0] = (byte)(value >> 24);
+            _eightByteBuffer[1] = (byte)(value >> 16);
+            _eightByteBuffer[2] = (byte)(value >> 8);
+            _eightByteBuffer[3] = (byte)value;
+
+            _stream.Write(_eightByteBuffer, 0, 4);
         }
 
         /// <summary>
@@ -147,14 +164,16 @@ namespace NHessian.IO
         /// </exception>
         public void WriteLong(long value)
         {
-            WriteByte((byte)(value >> 56));
-            WriteByte((byte)(value >> 48));
-            WriteByte((byte)(value >> 40));
-            WriteByte((byte)(value >> 32));
-            WriteByte((byte)(value >> 24));
-            WriteByte((byte)(value >> 16));
-            WriteByte((byte)(value >> 8));
-            WriteByte((byte)value);
+            _eightByteBuffer[0] = (byte)(value >> 56);
+            _eightByteBuffer[1] = (byte)(value >> 48);
+            _eightByteBuffer[2] = (byte)(value >> 40);
+            _eightByteBuffer[3] = (byte)(value >> 32);
+            _eightByteBuffer[4] = (byte)(value >> 24);
+            _eightByteBuffer[5] = (byte)(value >> 16);
+            _eightByteBuffer[6] = (byte)(value >> 8);
+            _eightByteBuffer[7] = (byte)value;
+
+            _stream.Write(_eightByteBuffer, 0, 8);
         }
 
         /// <summary>
@@ -185,18 +204,21 @@ namespace NHessian.IO
                 var c = value[i];
                 if (c < 0x80)
                 {
-                    WriteByte((byte)c);
+                    _eightByteBuffer[0] = (byte)c;
+                    _stream.Write(_eightByteBuffer, 0, 1);
                 }
                 else if (c < 0x800)
                 {
-                    WriteByte((byte)(0xc0 + ((c >> 6) & 0x1f)));
-                    WriteByte((byte)(0x80 + (c & 0x3f)));
+                    _eightByteBuffer[0] = (byte)(0xc0 + ((c >> 6) & 0x1f));
+                    _eightByteBuffer[1] = (byte)(0x80 + (c & 0x3f));
+                    _stream.Write(_eightByteBuffer, 0, 2);
                 }
                 else
                 {
-                    WriteByte((byte)(0xe0 + ((c >> 12) & 0xf)));
-                    WriteByte((byte)(0x80 + ((c >> 6) & 0x3f)));
-                    WriteByte((byte)(0x80 + (c & 0x3f)));
+                    _eightByteBuffer[0] = (byte)(0xe0 + ((c >> 12) & 0xf));
+                    _eightByteBuffer[1] = (byte)(0x80 + ((c >> 6) & 0x3f));
+                    _eightByteBuffer[2] = (byte)(0x80 + (c & 0x3f));
+                    _stream.Write(_eightByteBuffer, 0, 3);
                 }
             }
         }
@@ -210,8 +232,10 @@ namespace NHessian.IO
         /// </exception>
         public void WriteShort(int value)
         {
-            WriteByte((byte)(value >> 8));
-            WriteByte((byte)value);
+            _eightByteBuffer[0] = (byte)(value >> 8);
+            _eightByteBuffer[1] = (byte)value;
+
+            _stream.Write(_eightByteBuffer, 0, 2);
         }
     }
 }
