@@ -1,8 +1,12 @@
 # Changelog
 
+## 0.4.3
+
+- fix: rash when unknown compact class has object child #11
+
 ## 0.4.2
 
-perf: use internal buffer in HessianStreamWriter #10
+- perf: use internal buffer in HessianStreamWriter #10
 
 ## 0.4.1
 
